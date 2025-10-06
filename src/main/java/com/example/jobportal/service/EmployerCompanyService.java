@@ -19,8 +19,12 @@ public class EmployerCompanyService {
         return repo.find(employerCompany);
     }
 
-    public int create(EmployerCompany employerCompany) {
+    public EmployerCompany create(EmployerCompany employerCompany) {
         return repo.create(employerCompany);
+    }
+
+    public Optional<EmployerCompany> update(Long employerId, EmployerCompany employerCompany) {
+        return repo.update(employerId, employerCompany);
     }
 
     public int delete(EmployerCompany employerCompany) {

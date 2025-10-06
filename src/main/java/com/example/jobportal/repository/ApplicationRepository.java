@@ -72,7 +72,7 @@ public class ApplicationRepository {
                 .fetchOptionalInto(Application.class);
     }
 
-    public Long create(Application app) {
+    public Application create(Application app) {
         return dsl.insertInto(APPLICATIONS)
                 .set(APPLICATIONS.JOB_ID, app.getJobId())
                 .set(APPLICATIONS.SEEKER_ID, app.getSeekerId())
@@ -81,20 +81,19 @@ public class ApplicationRepository {
                 .set(APPLICATIONS.STATUS, app.getStatus())
                 .set(APPLICATIONS.FEEDBACK, app.getFeedback())
                 .set(APPLICATIONS.APPLIED_AT, LocalDateTime.now())
-                .returning(APPLICATIONS.ID)
-                .fetchOptionalInto(Application.class)
-                .map(Application::getId)
-                .orElseThrow(() -> new RuntimeException("Failed to insert application"));
+                .returning()
+                .fetchOneInto(Application.class);
     }
 
-    public int update(Long id, Application app) {
+    public Optional<Application> update(Long id, Application app) {
         return dsl.update(APPLICATIONS)
                 .set(APPLICATIONS.COVER_LETTER, app.getCoverLetter())
                 .set(APPLICATIONS.RESUME_URL, app.getResumeUrl())
                 .set(APPLICATIONS.STATUS, app.getStatus())
                 .set(APPLICATIONS.FEEDBACK, app.getFeedback())
                 .where(APPLICATIONS.ID.eq(id))
-                .execute();
+                .returning()
+                .fetchOptionalInto(Application.class);
     }
 
     public int delete(Long id) {

@@ -21,11 +21,11 @@ public class CompanySocialService {
         return repo.findById(id);
     }
 
-    public Long create(CompanySocial companySocial) {
+    public CompanySocial create(CompanySocial companySocial) {
         return repo.create(companySocial);
     }
 
-    public int update(Long id, CompanySocial companySocial) {
+    public Optional<CompanySocial> update(Long id, CompanySocial companySocial) {
         return repo.update(id, companySocial);
     }
 

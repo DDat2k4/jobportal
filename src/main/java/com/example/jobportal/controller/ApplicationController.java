@@ -59,15 +59,16 @@ public class ApplicationController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('APPLICATION_CREATE')")
-    public ApiResponse<Long> create(@RequestBody Application application) {
-        Long id = service.create(application);
-        return ApiResponse.ok("Application created successfully", id);
+    public ApiResponse<Application> create(@RequestBody Application application) {
+        Application created = service.create(application);
+        return ApiResponse.ok("Application created successfully", created);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('APPLICATION_UPDATE')")
-    public ApiResponse<Integer> update(@PathVariable Long id, @RequestBody Application application) {
-        int updated = service.update(id, application);
+    public ApiResponse<Application> update(@PathVariable Long id, @RequestBody Application application) {
+        Application updated = service.update(id, application)
+                .orElseThrow(() -> new RuntimeException("Application not found or update failed"));
         return ApiResponse.ok("Application updated successfully", updated);
     }
 

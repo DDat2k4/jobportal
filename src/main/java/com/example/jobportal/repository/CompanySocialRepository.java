@@ -66,24 +66,25 @@ public class CompanySocialRepository {
                 .fetchOptionalInto(CompanySocial.class);
     }
 
-    public Long create(CompanySocial social) {
+    public CompanySocial create(CompanySocial social) {
         return dsl.insertInto(COMPANY_SOCIALS)
                 .set(COMPANY_SOCIALS.COMPANY_ID, social.getCompanyId())
                 .set(COMPANY_SOCIALS.PLATFORM, social.getPlatform())
                 .set(COMPANY_SOCIALS.URL, social.getUrl())
                 .set(COMPANY_SOCIALS.CREATED_AT, LocalDateTime.now())
-                .returning(COMPANY_SOCIALS.ID)
+                .returning()
                 .fetchOptionalInto(CompanySocial.class)
-                .map(CompanySocial::getId)
                 .orElseThrow(() -> new RuntimeException("Failed to insert company social"));
     }
 
-    public int update(Long id, CompanySocial social) {
+
+    public Optional<CompanySocial> update(Long id, CompanySocial social) {
         return dsl.update(COMPANY_SOCIALS)
                 .set(COMPANY_SOCIALS.PLATFORM, social.getPlatform())
                 .set(COMPANY_SOCIALS.URL, social.getUrl())
                 .where(COMPANY_SOCIALS.ID.eq(id))
-                .execute();
+                .returning()
+                .fetchOptionalInto(CompanySocial.class);
     }
 
     public int delete(Long id) {

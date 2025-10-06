@@ -59,17 +59,19 @@ public class CompanySocialController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('COMPANY_SOCIAL_CREATE')")
-    public ApiResponse<Long> create(@RequestBody CompanySocial cs) {
-        Long id = service.create(cs);
-        return ApiResponse.ok("CompanySocial created successfully", id);
+    public ApiResponse<CompanySocial> create(@RequestBody CompanySocial cs) {
+        CompanySocial created = service.create(cs);
+        return ApiResponse.ok("CompanySocial created successfully", created);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('COMPANY_SOCIAL_UPDATE')")
-    public ApiResponse<Integer> update(@PathVariable Long id, @RequestBody CompanySocial cs) {
-        int updated = service.update(id, cs);
+    public ApiResponse<CompanySocial> update(@PathVariable Long id, @RequestBody CompanySocial cs) {
+        CompanySocial updated = service.update(id, cs)
+                .orElseThrow(() -> new RuntimeException("CompanySocial not found or update failed"));
         return ApiResponse.ok("CompanySocial updated successfully", updated);
     }
+
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('COMPANY_SOCIAL_DELETE')")

@@ -57,16 +57,17 @@ public class NotificationController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('NOTIFICATION_CREATE')")
-    public ApiResponse<Long> create(@RequestBody Notification notification) {
-        Long id = service.create(notification);
-        return ApiResponse.ok("Notification created successfully", id);
+    public ApiResponse<Notification> create(@RequestBody Notification notification) {
+        Notification created = service.create(notification);
+        return ApiResponse.ok("Notification created successfully", created);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('NOTIFICATION_UPDATE')")
-    public ApiResponse<Integer> update(@PathVariable Long id, @RequestBody Notification notification) {
+    public ApiResponse<Notification> update(@PathVariable Long id, @RequestBody Notification notification) {
         notification.setId(id);
-        int updated = service.update(id, notification);
+        Notification updated = service.update(id, notification)
+                .orElseThrow(() -> new RuntimeException("Notification not found or update failed"));
         return ApiResponse.ok("Notification updated successfully", updated);
     }
 

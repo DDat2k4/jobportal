@@ -22,11 +22,11 @@ public class CompanyAddressService {
         return repo.findById(id);
     }
 
-    public Long create(CompanyAddress companyAddress) {
+    public CompanyAddress create(CompanyAddress companyAddress) {
         return repo.create(companyAddress);
     }
 
-    public int update(Long id, CompanyAddress companyAddress) {
+    public Optional<CompanyAddress> update(Long id, CompanyAddress companyAddress) {
         return repo.update(id,
                 companyAddress);
     }

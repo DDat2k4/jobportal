@@ -28,9 +28,17 @@ public class EmployerCompanyController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('EMPLOYER_COMPANY_CREATE')")
-    public ApiResponse<Integer> create(@RequestBody EmployerCompany ec) {
-        int created = service.create(ec);
+    public ApiResponse<EmployerCompany> create(@RequestBody EmployerCompany ec) {
+        EmployerCompany created = service.create(ec);
         return ApiResponse.ok("EmployerCompany created successfully", created);
+    }
+
+    @PutMapping("/{employerId}")
+    @PreAuthorize("hasAuthority('EMPLOYER_COMPANY_UPDATE')")
+    public ApiResponse<EmployerCompany> update(@PathVariable Long employerId, @RequestBody EmployerCompany ec) {
+        EmployerCompany updated = service.update(employerId, ec)
+                .orElseThrow(() -> new RuntimeException("EmployerCompany not found or update failed"));
+        return ApiResponse.ok("EmployerCompany updated successfully", updated);
     }
 
     @DeleteMapping

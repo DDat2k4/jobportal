@@ -21,11 +21,11 @@ public class CompanyService {
         return repo.findById(id);
     }
 
-    public Long create(Company company) {
+    public Company create(Company company) {
         return repo.create(company);
     }
 
-    public int update(Long id, Company company) {
+    public Optional<Company> update(Long id, Company company) {
         return repo.update(id, company);
     }
 

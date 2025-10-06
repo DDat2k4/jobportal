@@ -61,16 +61,17 @@ public class JobController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('JOB_CREATE')")
-    public ApiResponse<Long> create(@RequestBody Job job) {
-        Long id = jobService.create(job);
-        return ApiResponse.ok("Job created successfully", id);
+    public ApiResponse<Job> create(@RequestBody Job job) {
+        Job created = jobService.create(job);
+        return ApiResponse.ok("Job created successfully", created);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('JOB_UPDATE')")
-    public ApiResponse<Integer> update(@PathVariable Long id, @RequestBody Job job) {
+    public ApiResponse<Job> update(@PathVariable Long id, @RequestBody Job job) {
         job.setId(id);
-        int updated = jobService.update(job);
+        Job updated = jobService.update(job)
+                .orElseThrow(() -> new RuntimeException("Job not found or update failed"));
         return ApiResponse.ok("Job updated successfully", updated);
     }
 

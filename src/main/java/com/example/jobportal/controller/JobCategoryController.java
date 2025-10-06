@@ -51,17 +51,18 @@ public class JobCategoryController {
     // Tạo mới
     @PostMapping
     @PreAuthorize("hasAuthority('JOB_CATEGORY_CREATE')")
-    public ApiResponse<Long> create(@RequestBody JobCategory category) {
-        Long id = service.create(category);
-        return ApiResponse.ok("Job category created successfully", id);
+    public ApiResponse<JobCategory> create(@RequestBody JobCategory category) {
+        JobCategory created = service.create(category);
+        return ApiResponse.ok("Job category created successfully", created);
     }
 
     // Cập nhật
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('JOB_CATEGORY_UPDATE')")
-    public ApiResponse<Integer> update(@PathVariable Long id, @RequestBody JobCategory category) {
+    public ApiResponse<JobCategory> update(@PathVariable Long id, @RequestBody JobCategory category) {
         category.setId(id);
-        int updated = service.update(category);
+        JobCategory updated = service.update(category)
+                .orElseThrow(() -> new RuntimeException("Job category not found or update failed"));
         return ApiResponse.ok("Job category updated successfully", updated);
     }
 

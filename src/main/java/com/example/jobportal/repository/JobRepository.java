@@ -71,7 +71,7 @@ public class JobRepository {
                 .fetchOptionalInto(Job.class);
     }
 
-    public Long create(Job job) {
+    public Job create(Job job) {
         return dsl.insertInto(JOBS)
                 .set(JOBS.COMPANY_ID, job.getCompanyId())
                 .set(JOBS.TITLE, job.getTitle())
@@ -85,11 +85,11 @@ public class JobRepository {
                 .set(JOBS.STATUS, job.getStatus() != null ? job.getStatus() : (short) 1)
                 .set(JOBS.CREATED_AT, LocalDateTime.now())
                 .set(JOBS.UPDATED_AT, LocalDateTime.now())
-                .returning(JOBS.ID)
-                .fetchOneInto(Long.class);
+                .returning()
+                .fetchOneInto(Job.class);
     }
 
-    public int update(Job job) {
+    public Optional<Job> update(Job job) {
         return dsl.update(JOBS)
                 .set(JOBS.TITLE, job.getTitle())
                 .set(JOBS.DESCRIPTION, job.getDescription())
@@ -101,7 +101,8 @@ public class JobRepository {
                 .set(JOBS.STATUS, job.getStatus())
                 .set(JOBS.UPDATED_AT, LocalDateTime.now())
                 .where(JOBS.ID.eq(job.getId()))
-                .execute();
+                .returning()
+                .fetchOptionalInto(Job.class);
     }
 
     public int delete(Long id) {

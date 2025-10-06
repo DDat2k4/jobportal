@@ -66,24 +66,23 @@ public class NotificationRepository {
                 .fetchOptionalInto(Notification.class);
     }
 
-    public Long create(Notification notification) {
+    public Notification create(Notification notification) {
         return dsl.insertInto(NOTIFICATIONS)
                 .set(NOTIFICATIONS.USER_ID, notification.getUserId())
                 .set(NOTIFICATIONS.MESSAGE, notification.getMessage())
                 .set(NOTIFICATIONS.IS_READ, notification.getIsRead() != null ? notification.getIsRead() : false)
                 .set(NOTIFICATIONS.CREATED_AT, LocalDateTime.now())
-                .returning(NOTIFICATIONS.ID)
-                .fetchOptionalInto(Notification.class)
-                .map(Notification::getId)
-                .orElseThrow(() -> new RuntimeException("Failed to insert notification"));
+                .returning()
+                .fetchOneInto(Notification.class);
     }
 
-    public int update(Long id, Notification notification) {
+    public Optional<Notification> update(Long id, Notification notification) {
         return dsl.update(NOTIFICATIONS)
                 .set(NOTIFICATIONS.MESSAGE, notification.getMessage())
                 .set(NOTIFICATIONS.IS_READ, notification.getIsRead())
                 .where(NOTIFICATIONS.ID.eq(id))
-                .execute();
+                .returning()
+                .fetchOptionalInto(Notification.class);
     }
 
     public int delete(Long id) {

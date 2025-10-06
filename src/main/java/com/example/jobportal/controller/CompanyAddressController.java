@@ -57,15 +57,16 @@ public class CompanyAddressController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('COMPANY_ADDRESS_CREATE')")
-    public ApiResponse<Long> create(@RequestBody CompanyAddress address) {
-        Long id = service.create(address);
-        return ApiResponse.ok("CompanyAddress created successfully", id);
+    public ApiResponse<CompanyAddress> create(@RequestBody CompanyAddress address) {
+        CompanyAddress created = service.create(address);
+        return ApiResponse.ok("CompanyAddress created successfully", created);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('COMPANY_ADDRESS_UPDATE')")
-    public ApiResponse<Integer> update(@PathVariable Long id, @RequestBody CompanyAddress address) {
-        int updated = service.update(id, address);
+    public ApiResponse<CompanyAddress> update(@PathVariable Long id, @RequestBody CompanyAddress address) {
+        CompanyAddress updated = service.update(id, address)
+                .orElseThrow(() -> new RuntimeException("CompanyAddress not found or update failed"));
         return ApiResponse.ok("CompanyAddress updated successfully", updated);
     }
 

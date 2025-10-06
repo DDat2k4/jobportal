@@ -72,7 +72,7 @@ public class CompanyRepository {
                 .fetchOptionalInto(Company.class);
     }
 
-    public Long create(Company company) {
+    public Company create(Company company) {
         return dsl.insertInto(COMPANIES)
                 .set(COMPANIES.NAME, company.getName())
                 .set(COMPANIES.TAGLINE, company.getTagline())
@@ -86,12 +86,11 @@ public class CompanyRepository {
                 .set(COMPANIES.WEBSITE, company.getWebsite())
                 .set(COMPANIES.CREATED_AT, LocalDateTime.now())
                 .set(COMPANIES.UPDATED_AT, LocalDateTime.now())
-                .returning(COMPANIES.ID)
-                .fetchOne()
-                .getId();
+                .returning()
+                .fetchOneInto(Company.class);
     }
 
-    public int update(Long id, Company company) {
+    public Optional<Company> update(Long id, Company company) {
         return dsl.update(COMPANIES)
                 .set(COMPANIES.NAME, company.getName())
                 .set(COMPANIES.TAGLINE, company.getTagline())
@@ -105,7 +104,8 @@ public class CompanyRepository {
                 .set(COMPANIES.WEBSITE, company.getWebsite())
                 .set(COMPANIES.UPDATED_AT, LocalDateTime.now())
                 .where(COMPANIES.ID.eq(id))
-                .execute();
+                .returning()
+                .fetchOptionalInto(Company.class);
     }
 
     public int delete(Long id) {

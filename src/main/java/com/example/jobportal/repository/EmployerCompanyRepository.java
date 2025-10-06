@@ -28,7 +28,7 @@ public class EmployerCompanyRepository {
         );
     }
 
-    private Condition buildCondition(EmployerCompany filter) {
+    private Condition getWhereCondition(EmployerCompany filter) {
         Condition condition = DSL.trueCondition();
 
         if (filter.getEmployerId() != null) {
@@ -44,7 +44,7 @@ public class EmployerCompanyRepository {
     public Optional<EmployerCompany> find(EmployerCompany filter) {
         return dsl.select(getFields())
                 .from(EMPLOYER_COMPANIES)
-                .where(buildCondition(filter))
+                .where(getWhereCondition(filter))
                 .fetchOptionalInto(EmployerCompany.class);
     }
 
@@ -54,11 +54,20 @@ public class EmployerCompanyRepository {
                 .fetchOne(0, long.class);
     }
 
-    public int create(EmployerCompany entity) {
+    public EmployerCompany create(EmployerCompany entity) {
         return dsl.insertInto(EMPLOYER_COMPANIES)
                 .set(EMPLOYER_COMPANIES.EMPLOYER_ID, entity.getEmployerId())
                 .set(EMPLOYER_COMPANIES.COMPANY_ID, entity.getCompanyId())
-                .execute();
+                .returning()
+                .fetchOneInto(EmployerCompany.class);
+    }
+
+    public Optional<EmployerCompany> update(Long employerId, EmployerCompany updated) {
+        return dsl.update(EMPLOYER_COMPANIES)
+                .set(EMPLOYER_COMPANIES.COMPANY_ID, updated.getCompanyId())
+                .where(EMPLOYER_COMPANIES.EMPLOYER_ID.eq(employerId))
+                .returning()
+                .fetchOptionalInto(EmployerCompany.class);
     }
 
     public int delete(EmployerCompany entity) {

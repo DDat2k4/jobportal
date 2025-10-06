@@ -21,13 +21,12 @@ public class ApplicationService {
         return repo.findById(id);
     }
 
-    public Long create(Application application) {
+    public Application create(Application application) {
         return repo.create(application);
     }
 
-    public int update(Long id, Application application) {
-        return repo.update(id,
-                application);
+    public Optional<Application> update(Long id, Application application) {
+        return repo.update(id, application);
     }
 
     public int delete(Long id) {

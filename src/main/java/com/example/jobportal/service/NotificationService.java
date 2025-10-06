@@ -21,11 +21,11 @@ public class NotificationService {
         return repo.findById(id);
     }
 
-    public Long create(Notification notification) {
+    public Notification create(Notification notification) {
         return repo.create(notification);
     }
 
-    public int update(Long id, Notification notification) {
+    public Optional<Notification> update(Long id, Notification notification) {
         return repo.update(id, notification);
     }
 

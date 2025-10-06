@@ -50,18 +50,19 @@ public class JobCategoryRepository {
                 .fetchOptionalInto(JobCategory.class);
     }
 
-    public Long create(JobCategory category) {
+    public JobCategory create(JobCategory category) {
         return dsl.insertInto(JOB_CATEGORIES)
                 .set(JOB_CATEGORIES.NAME, category.getName())
-                .returning(JOB_CATEGORIES.ID)
-                .fetchOneInto(Long.class);
+                .returning()
+                .fetchOneInto(JobCategory.class);
     }
 
-    public int update(JobCategory category) {
+    public Optional<JobCategory> update(JobCategory category) {
         return dsl.update(JOB_CATEGORIES)
                 .set(JOB_CATEGORIES.NAME, category.getName())
                 .where(JOB_CATEGORIES.ID.eq(category.getId()))
-                .execute();
+                .returning()
+                .fetchOptionalInto(JobCategory.class);
     }
 
     public int delete(JobCategory category) {

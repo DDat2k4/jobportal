@@ -77,7 +77,7 @@ public class CompanyAddressRepository {
                 .fetchOptionalInto(CompanyAddress.class);
     }
 
-    public Long create(CompanyAddress address) {
+    public CompanyAddress create(CompanyAddress address) {
         return dsl.insertInto(COMPANY_ADDRESSES)
                 .set(COMPANY_ADDRESSES.COMPANY_ID, address.getCompanyId())
                 .set(COMPANY_ADDRESSES.EMAIL, address.getEmail())
@@ -90,11 +90,11 @@ public class CompanyAddressRepository {
                 .set(COMPANY_ADDRESSES.COUNTRY, address.getCountry())
                 .set(COMPANY_ADDRESSES.ZIP_CODE, address.getZipCode())
                 .set(COMPANY_ADDRESSES.CREATED_AT, LocalDateTime.now())
-                .returning(COMPANY_ADDRESSES.ID)
-                .fetchOneInto(Long.class);
+                .returning()
+                .fetchOneInto(CompanyAddress.class);
     }
 
-    public int update(Long id, CompanyAddress address) {
+    public Optional<CompanyAddress> update(Long id, CompanyAddress address) {
         return dsl.update(COMPANY_ADDRESSES)
                 .set(COMPANY_ADDRESSES.EMAIL, address.getEmail())
                 .set(COMPANY_ADDRESSES.PHONE, address.getPhone())
@@ -106,7 +106,8 @@ public class CompanyAddressRepository {
                 .set(COMPANY_ADDRESSES.COUNTRY, address.getCountry())
                 .set(COMPANY_ADDRESSES.ZIP_CODE, address.getZipCode())
                 .where(COMPANY_ADDRESSES.ID.eq(id))
-                .execute();
+                .returning()
+                .fetchOptionalInto(CompanyAddress.class);
     }
 
     public int delete(Long id) {

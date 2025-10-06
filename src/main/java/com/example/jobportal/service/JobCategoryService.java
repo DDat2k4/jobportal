@@ -21,11 +21,11 @@ public class JobCategoryService {
         return repo.find(jobCategory);
     }
 
-    public Long create(JobCategory jobCategory) {
+    public JobCategory create(JobCategory jobCategory) {
         return repo.create(jobCategory);
     }
 
-    public int update(JobCategory jobCategory) {
+    public Optional<JobCategory> update(JobCategory jobCategory) {
         return repo.update(jobCategory);
     }
 

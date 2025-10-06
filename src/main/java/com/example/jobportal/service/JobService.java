@@ -21,11 +21,11 @@ public class JobService {
         return repo.findById(id);
     }
 
-    public Long create(Job job) {
+    public Job create(Job job) {
         return repo.create(job);
     }
 
-    public int update(Job job) {
+    public Optional<Job> update(Job job) {
         return repo.update(job);
     }
 
