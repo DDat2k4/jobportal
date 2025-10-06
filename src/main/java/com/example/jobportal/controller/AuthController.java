@@ -1,6 +1,5 @@
 package com.example.jobportal.controller;
 
-import com.example.jobportal.data.entity.User;
 import com.example.jobportal.data.request.AuthRequest;
 import com.example.jobportal.data.request.RegisterRequest;
 import com.example.jobportal.data.request.RefreshRequest;
@@ -13,9 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")

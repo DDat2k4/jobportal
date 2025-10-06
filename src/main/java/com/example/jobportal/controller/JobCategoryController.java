@@ -19,7 +19,6 @@ public class JobCategoryController {
 
     private final JobCategoryService service;
 
-    // Lấy theo ID
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('JOB_CATEGORY_READ')")
     public ApiResponse<JobCategory> getById(@PathVariable Long id) {
@@ -28,7 +27,6 @@ public class JobCategoryController {
                 .orElseGet(() -> ApiResponse.error("Job category not found"));
     }
 
-    // Lấy danh sách phân trang + filter + sort
     @GetMapping
     @PreAuthorize("hasAuthority('JOB_CATEGORY_READ')")
     public ApiResponse<Page<JobCategory>> getAll(
@@ -48,7 +46,6 @@ public class JobCategoryController {
         return ApiResponse.ok("Job categories fetched successfully", result);
     }
 
-    // Tạo mới
     @PostMapping
     @PreAuthorize("hasAuthority('JOB_CATEGORY_CREATE')")
     public ApiResponse<JobCategory> create(@RequestBody JobCategory category) {
@@ -56,7 +53,6 @@ public class JobCategoryController {
         return ApiResponse.ok("Job category created successfully", created);
     }
 
-    // Cập nhật
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('JOB_CATEGORY_UPDATE')")
     public ApiResponse<JobCategory> update(@PathVariable Long id, @RequestBody JobCategory category) {
@@ -66,7 +62,6 @@ public class JobCategoryController {
         return ApiResponse.ok("Job category updated successfully", updated);
     }
 
-    // Xóa
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('JOB_CATEGORY_DELETE')")
     public ApiResponse<Integer> delete(@PathVariable Long id) {
