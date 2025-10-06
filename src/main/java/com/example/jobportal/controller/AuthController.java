@@ -1,5 +1,6 @@
 package com.example.jobportal.controller;
 
+import com.example.jobportal.constant.RoleConstant;
 import com.example.jobportal.data.request.AuthRequest;
 import com.example.jobportal.data.request.RegisterRequest;
 import com.example.jobportal.data.request.RefreshRequest;
@@ -7,6 +8,7 @@ import com.example.jobportal.data.response.ApiResponse;
 import com.example.jobportal.data.response.AuthResponse;
 import com.example.jobportal.repository.UserRepository;
 import com.example.jobportal.service.AuthService;
+import com.example.jobportal.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,21 +27,37 @@ public class AuthController {
     // REGISTER
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Void>> register(@RequestBody RegisterRequest request) {
+        // Kiểm tra username tồn tại
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             return ResponseEntity.ok(new ApiResponse<>(false, "Username already exists", null));
         }
 
+        // Hash password
         String passwordHash = passwordEncoder.encode(request.getPassword());
         Long userId = userRepository.createUser(request.getUsername(), request.getEmail(), passwordHash);
 
         // Tạo profile mặc định
         userRepository.createProfile(userId, request.getUsername(), null);
 
-        // Gán role mặc định (role_id = 2)
-        userRepository.assignRole(userId, 2L);
+        // Xác định role mặc định
+        long roleId = RoleConstant.ROLE_EMPLOYER;
+
+        // Lấy roleType từ request
+        String requestedRole = request.getRoleType();
+
+        // Chỉ chấp nhận role hợp lệ
+        if (RoleConstant.ROLE_JOB_SEEKER == CommonUtils.toLong(requestedRole, 0L) ||
+                RoleConstant.ROLE_EMPLOYER == CommonUtils.toLong(requestedRole, 0L)) {
+            roleId = CommonUtils.toLong(requestedRole, RoleConstant.ROLE_EMPLOYER);
+        }
+
+        // Gán role cho user
+        userRepository.assignRole(userId, roleId);
+
 
         return ResponseEntity.ok(new ApiResponse<>(true, "User registered successfully!", null));
     }
+
 
     // LOGIN
     @PostMapping("/login")

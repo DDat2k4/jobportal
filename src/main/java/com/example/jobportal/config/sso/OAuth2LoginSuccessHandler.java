@@ -1,11 +1,13 @@
 package com.example.jobportal.config.sso;
 
+import com.example.jobportal.constant.RoleConstant;
 import com.example.jobportal.data.pojo.UserDTO;
 import com.example.jobportal.data.response.AuthResponse;
 import com.example.jobportal.repository.UserRepository;
 import com.example.jobportal.repository.UserTokenRepository;
 import com.example.jobportal.service.JwtService;
 import com.example.jobportal.service.UserService;
+import com.example.jobportal.util.CommonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,7 +58,16 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
             // Nếu cần tạo profile và role mặc định
             userRepository.createProfile(userId, defaultUsername, avatar);
-            userRepository.assignRole(userId, 2L); // role default
+            String requestedRole = request.getParameter("roleType");
+            long defaultRoleId = RoleConstant.ROLE_EMPLOYER; // fallback
+
+            defaultRoleId = CommonUtils.toLong(requestedRole, defaultRoleId);
+
+            if (defaultRoleId != RoleConstant.ROLE_JOB_SEEKER && defaultRoleId != RoleConstant.ROLE_EMPLOYER) {
+                defaultRoleId = RoleConstant.ROLE_EMPLOYER;
+            }
+
+            userRepository.assignRole(userId, defaultRoleId);
 
             return userRepository.findById(userId).orElseThrow();
         });

@@ -751,5 +751,56 @@ public class CommonUtils {
         }
     }
 
+    /**
+     * Chuyển Object sang Long, nếu null hoặc không parse được thì trả về giá trị mặc định
+     */
+    public static Long toLong(Object obj, Long defaultVal) {
+        if (obj == null) return defaultVal;
+        try {
+            if (obj instanceof Number) {
+                return ((Number) obj).longValue();
+            }
+            return Long.parseLong(obj.toString());
+        } catch (Exception e) {
+            return defaultVal;
+        }
+    }
 
+    /**
+     * Chuyển Object sang Integer, nếu null hoặc không parse được thì trả về giá trị mặc định
+     */
+    public static Integer toInteger(Object obj, Integer defaultVal) {
+        if (obj == null) return defaultVal;
+        try {
+            if (obj instanceof Number) {
+                return ((Number) obj).intValue();
+            }
+            return Integer.parseInt(obj.toString());
+        } catch (Exception e) {
+            return defaultVal;
+        }
+    }
+
+    /**
+     * Chuyển Object sang Boolean, nếu null hoặc không parse được thì trả về giá trị mặc định
+     */
+    public static Boolean toBoolean(Object obj, Boolean defaultVal) {
+        if (obj == null) return defaultVal;
+        try {
+            if (obj instanceof Boolean) {
+                return (Boolean) obj;
+            }
+            String str = obj.toString().toLowerCase();
+            return "true".equals(str) || "1".equals(str);
+        } catch (Exception e) {
+            return defaultVal;
+        }
+    }
+
+    /**
+     * Chuyển Object sang String, nếu null thì trả về ""
+     */
+    public static String toString(Object obj) {
+        return obj == null ? "" : obj.toString();
+    }
 }

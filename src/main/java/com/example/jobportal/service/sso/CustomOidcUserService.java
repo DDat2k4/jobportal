@@ -1,10 +1,12 @@
 package com.example.jobportal.service.sso;
 
+import com.example.jobportal.constant.RoleConstant;
 import com.example.jobportal.data.pojo.UserDTO;
 import com.example.jobportal.repository.UserRepository;
 import com.example.jobportal.repository.UserTokenRepository;
 import com.example.jobportal.service.JwtService;
 import com.example.jobportal.service.UserService;
+import com.example.jobportal.util.CommonUtils;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,8 +45,15 @@ public class CustomOidcUserService extends OidcUserService {
             // Tạo profile mặc định
             userRepository.createProfile(userId, username, null);
 
-            // Gán role mặc định
-            userRepository.assignRole(userId, 2L);
+            long roleId = RoleConstant.ROLE_EMPLOYER; // fallback
+            String requestedRole = (String) userRequest.getAdditionalParameters().get("roleType");
+
+            if (RoleConstant.ROLE_JOB_SEEKER == CommonUtils.toLong(requestedRole, 0L) ||
+                    RoleConstant.ROLE_EMPLOYER == CommonUtils.toLong(requestedRole, 0L)) {
+                roleId = CommonUtils.toLong(requestedRole, RoleConstant.ROLE_EMPLOYER);
+            }
+
+            userRepository.assignRole(userId, roleId);
 
             return userRepository.findById(userId).orElseThrow();
         });
