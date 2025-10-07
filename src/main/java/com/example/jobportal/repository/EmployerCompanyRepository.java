@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
-import org.jooq.OrderField;
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 
@@ -13,7 +12,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static com.example.generated.jooq.tables.Companies.COMPANIES;
 import static com.example.generated.jooq.tables.EmployerCompanies.EMPLOYER_COMPANIES;
+import static com.example.generated.jooq.tables.Users.USERS;
 
 @Repository
 @RequiredArgsConstructor
@@ -41,11 +42,26 @@ public class EmployerCompanyRepository {
         return condition;
     }
 
-    public Optional<EmployerCompany> find(EmployerCompany filter) {
-        return dsl.select(getFields())
+    public List<EmployerCompany> find(EmployerCompany filter) {
+        Condition condition = DSL.trueCondition();
+
+        if (filter.getEmployerId() != null)
+            condition = condition.and(EMPLOYER_COMPANIES.EMPLOYER_ID.eq(filter.getEmployerId()));
+
+        if (filter.getCompanyId() != null)
+            condition = condition.and(EMPLOYER_COMPANIES.COMPANY_ID.eq(filter.getCompanyId()));
+
+        return dsl.select(
+                EMPLOYER_COMPANIES.EMPLOYER_ID,
+                        EMPLOYER_COMPANIES.COMPANY_ID,
+                        USERS.USERNAME.as("employerUsername"),
+                        COMPANIES.NAME.as("companyName")
+                )
                 .from(EMPLOYER_COMPANIES)
-                .where(getWhereCondition(filter))
-                .fetchOptionalInto(EmployerCompany.class);
+                .join(USERS).on(USERS.ID.eq(EMPLOYER_COMPANIES.EMPLOYER_ID))
+                .join(COMPANIES).on(COMPANIES.ID.eq(EMPLOYER_COMPANIES.COMPANY_ID))
+                .where(condition)
+                .fetchInto(EmployerCompany.class);
     }
 
     public long count() {

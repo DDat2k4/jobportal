@@ -1,13 +1,16 @@
 package com.example.jobportal.controller;
 
 import com.example.jobportal.data.entity.Company;
+import com.example.jobportal.data.entity.EmployerCompany;
 import com.example.jobportal.data.response.ApiResponse;
 import com.example.jobportal.extension.paging.Order;
 import com.example.jobportal.extension.paging.Page;
 import com.example.jobportal.extension.paging.Pageable;
 import com.example.jobportal.service.CompanyService;
+import com.example.jobportal.service.EmployerCompanyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -18,6 +21,7 @@ import java.util.Optional;
 public class CompanyController {
 
     private final CompanyService companyService;
+    private final EmployerCompanyService employerCompanyService;
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('COMPANY_READ')")
@@ -57,8 +61,18 @@ public class CompanyController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('COMPANY_CREATE')")
-    public ApiResponse<Company> create(@RequestBody Company company) {
+    public ApiResponse<Company> create(@RequestBody Company company,
+                                       @AuthenticationPrincipal(expression = "id") Long employerId) {
+        // Tạo công ty
         Company created = companyService.create(company);
+
+        //Tạo liên kết Employer ↔ Company
+        employerCompanyService.create(
+                new EmployerCompany()
+                        .setEmployerId(employerId)
+                        .setCompanyId(created.getId())
+        );
+
         return ApiResponse.ok("Company created successfully", created);
     }
 

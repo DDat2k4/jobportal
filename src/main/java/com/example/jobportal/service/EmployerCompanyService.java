@@ -4,6 +4,7 @@ import com.example.jobportal.data.entity.EmployerCompany;
 import com.example.jobportal.repository.EmployerCompanyRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -15,7 +16,7 @@ public class EmployerCompanyService {
         this.repo = repo;
     }
 
-    public Optional<EmployerCompany> get(EmployerCompany employerCompany) {
+    public List<EmployerCompany> get(EmployerCompany employerCompany) {
         return repo.find(employerCompany);
     }
 

@@ -1,6 +1,7 @@
 package com.example.jobportal.controller;
 
 import com.example.jobportal.data.entity.Application;
+import com.example.jobportal.data.pojo.StatusUpdateRequest;
 import com.example.jobportal.data.response.ApiResponse;
 import com.example.jobportal.extension.paging.Order;
 import com.example.jobportal.extension.paging.Page;
@@ -77,5 +78,19 @@ public class ApplicationController {
     public ApiResponse<Integer> delete(@PathVariable Long id) {
         int deleted = service.delete(id);
         return ApiResponse.ok("Application deleted successfully", deleted);
+    }
+
+    // Thay đổi trạng thái cho người muốn apply cv
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('APPLICATION_UPDATE_STATUS')")
+    public ApiResponse<Application> updateStatus(
+            @PathVariable Long id,
+            @RequestBody StatusUpdateRequest request
+    ) {
+        Application updated = service.changeStatus(id, request.getNewStatus(), request.getFeedback());
+        return ApiResponse.ok(
+                String.format("Application status updated to %s successfully", request.getNewStatus()),
+                updated
+        );
     }
 }

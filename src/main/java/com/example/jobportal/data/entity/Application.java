@@ -19,6 +19,14 @@ public class Application {
     private Long seekerId;
     private String coverLetter;
     private String resumeUrl;
+    /**
+     * Trạng thái của đơn ứng tuyển:
+     * PENDING   - Ứng viên vừa nộp, chưa duyệt
+     * APPROVED  - Đã duyệt sơ bộ
+     * INTERVIEW - Đã được mời phỏng vấn
+     * HIRED     - Đã được tuyển
+     * REJECTED  - Bị từ chối
+     */
     private String status;
     private String feedback;
     private LocalDateTime appliedAt;

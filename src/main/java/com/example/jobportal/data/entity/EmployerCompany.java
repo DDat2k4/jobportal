@@ -14,4 +14,8 @@ import lombok.experimental.Accessors;
 public class EmployerCompany {
     private Long employerId;
     private Long companyId;
+
+    // Các field mô tả thêm cho response
+    private String employerUsername;
+    private String companyName;
 }

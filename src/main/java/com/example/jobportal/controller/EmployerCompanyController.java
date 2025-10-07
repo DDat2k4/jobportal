@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -16,16 +17,17 @@ public class EmployerCompanyController {
 
     private final EmployerCompanyService service;
 
+    // Xem ai đang trong công ty
     @GetMapping
     @PreAuthorize("hasAuthority('EMPLOYER_COMPANY_READ')")
-    public ApiResponse<EmployerCompany> get(@RequestParam(required = false) Long employerId,
-                                            @RequestParam(required = false) Long companyId) {
+    public ApiResponse<List<EmployerCompany>> get(@RequestParam(required = false) Long employerId,
+                                                  @RequestParam(required = false) Long companyId) {
         EmployerCompany filter = new EmployerCompany().setEmployerId(employerId).setCompanyId(companyId);
-        Optional<EmployerCompany> ec = service.get(filter);
-        return ec.map(e -> ApiResponse.ok("EmployerCompany fetched successfully", e))
-                .orElseGet(() -> ApiResponse.error("EmployerCompany not found"));
+        List<EmployerCompany> ec = service.get(filter);
+        return ApiResponse.ok("EmployerCompany fetched successfully", ec);
     }
 
+    // Thêm người khác vào công ty
     @PostMapping
     @PreAuthorize("hasAuthority('EMPLOYER_COMPANY_CREATE')")
     public ApiResponse<EmployerCompany> create(@RequestBody EmployerCompany ec) {
@@ -40,7 +42,7 @@ public class EmployerCompanyController {
                 .orElseThrow(() -> new RuntimeException("EmployerCompany not found or update failed"));
         return ApiResponse.ok("EmployerCompany updated successfully", updated);
     }
-
+    // Xóa người khỏi công ty
     @DeleteMapping
     @PreAuthorize("hasAuthority('EMPLOYER_COMPANY_DELETE')")
     public ApiResponse<Integer> delete(@RequestBody EmployerCompany ec) {
