@@ -31,8 +31,8 @@ public class ApplicationRepository {
                 APPLICATIONS.ID,
                 APPLICATIONS.JOB_ID,
                 APPLICATIONS.SEEKER_ID,
+                APPLICATIONS.CV_ID,
                 APPLICATIONS.COVER_LETTER,
-                APPLICATIONS.RESUME_URL,
                 APPLICATIONS.STATUS,
                 APPLICATIONS.FEEDBACK,
                 APPLICATIONS.APPLIED_AT
@@ -76,8 +76,8 @@ public class ApplicationRepository {
         return dsl.insertInto(APPLICATIONS)
                 .set(APPLICATIONS.JOB_ID, app.getJobId())
                 .set(APPLICATIONS.SEEKER_ID, app.getSeekerId())
+                .set(APPLICATIONS.CV_ID, app.getCvId())
                 .set(APPLICATIONS.COVER_LETTER, app.getCoverLetter())
-                .set(APPLICATIONS.RESUME_URL, app.getResumeUrl())
                 .set(APPLICATIONS.STATUS, app.getStatus())
                 .set(APPLICATIONS.FEEDBACK, app.getFeedback())
                 .set(APPLICATIONS.APPLIED_AT, LocalDateTime.now())
@@ -87,8 +87,8 @@ public class ApplicationRepository {
 
     public Optional<Application> update(Long id, Application app) {
         return dsl.update(APPLICATIONS)
+                .set(APPLICATIONS.CV_ID, app.getCvId())
                 .set(APPLICATIONS.COVER_LETTER, app.getCoverLetter())
-                .set(APPLICATIONS.RESUME_URL, app.getResumeUrl())
                 .set(APPLICATIONS.STATUS, app.getStatus())
                 .set(APPLICATIONS.FEEDBACK, app.getFeedback())
                 .where(APPLICATIONS.ID.eq(id))

@@ -17,8 +17,8 @@ public class Application {
     private Long id;
     private Long jobId;
     private Long seekerId;
+    private Long cvId;
     private String coverLetter;
-    private String resumeUrl;
     /**
      * Trạng thái của đơn ứng tuyển:
      * PENDING   - Ứng viên vừa nộp, chưa duyệt

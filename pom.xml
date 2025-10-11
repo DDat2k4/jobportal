@@ -16,7 +16,7 @@
     <artifactId>jobportal</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>jobportal</name>
-    <description>Module quản lý người dùng với roles và permissions</description>
+    <description>Module jobportal</description>
 
     <properties>
         <java.version>21</java.version>
