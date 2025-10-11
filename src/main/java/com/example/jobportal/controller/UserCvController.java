@@ -1,6 +1,7 @@
 package com.example.jobportal.controller;
 
 import com.example.jobportal.data.entity.UserCv;
+import com.example.jobportal.data.pojo.FullCvResponse;
 import com.example.jobportal.data.response.ApiResponse;
 import com.example.jobportal.extension.paging.Order;
 import com.example.jobportal.extension.paging.Page;
@@ -90,4 +91,39 @@ public class UserCvController {
         return cv.map(c -> ApiResponse.ok("Default CV fetched successfully", c))
                 .orElseGet(() -> ApiResponse.error("Default CV not found"));
     }
+
+    /**
+     * Lấy CV đầy đủ (bao gồm danh sách section)
+     */
+    @GetMapping("/{id}/full")
+    @PreAuthorize("hasAuthority('USER_CV_READ')")
+    public ApiResponse<?> getFullCv(@PathVariable Long id) {
+        return service.getFullCv(id)
+                .map(full -> ApiResponse.ok("Full CV fetched successfully", full))
+                .orElseGet(() -> ApiResponse.error("CV not found"));
+    }
+
+    /**
+     * Tạo 1 bản CV mới dựa trên id gốc, copy toàn bộ section sang
+     */
+    @PostMapping("/{id}/clone")
+    @PreAuthorize("hasAuthority('USER_CV_CREATE')")
+    public ApiResponse<UserCv> cloneCv(@PathVariable Long id) {
+        return service.cloneCv(id)
+                .map(clone -> ApiResponse.ok("CV cloned successfully", clone))
+                .orElseGet(() -> ApiResponse.error("CV not found or clone failed"));
+    }
+
+    /**
+     * Cập nhật CV + section đồng thời
+     */
+    @PutMapping("/{id}/full")
+    @PreAuthorize("hasAuthority('USER_CV_UPDATE')")
+    public ApiResponse<?> updateFullCv(@PathVariable Long id, @RequestBody FullCvResponse payload) {
+        boolean updated = service.updateFullCv(id, payload);
+        return updated
+                ? ApiResponse.ok("Full CV updated successfully", payload)
+                : ApiResponse.error("Update failed or CV not found");
+    }
+
 }
