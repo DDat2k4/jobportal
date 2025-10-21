@@ -93,4 +93,17 @@ public class EmployerCompanyRepository {
                 .execute();
     }
 
+    public List<EmployerCompany> findCompaniesByEmployerId(Long employerId) {
+        return dsl.select(
+                        EMPLOYER_COMPANIES.EMPLOYER_ID,
+                        EMPLOYER_COMPANIES.COMPANY_ID,
+                        COMPANIES.NAME.as("companyName"),
+                        USERS.USERNAME.as("employerUsername")
+                )
+                .from(EMPLOYER_COMPANIES)
+                .join(COMPANIES).on(COMPANIES.ID.eq(EMPLOYER_COMPANIES.COMPANY_ID))
+                .join(USERS).on(USERS.ID.eq(EMPLOYER_COMPANIES.EMPLOYER_ID))
+                .where(EMPLOYER_COMPANIES.EMPLOYER_ID.eq(employerId))
+                .fetchInto(EmployerCompany.class);
+    }
 }

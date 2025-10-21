@@ -81,4 +81,18 @@ public class JobController {
         int deleted = jobService.delete(id);
         return ApiResponse.ok("Job deleted successfully", deleted);
     }
+
+    @GetMapping("/count-by-category")
+    @PreAuthorize("hasAuthority('JOB_READ')")
+    public ApiResponse<?> countJobsByCategory(
+            @RequestParam(required = false) Long companyId,
+            @RequestParam(required = false) Short status
+    ) {
+        Job filter = new Job()
+                .setCompanyId(companyId)
+                .setStatus(status);
+
+        return ApiResponse.ok("Job count by category fetched successfully",
+                jobService.countJobsByCategory(filter));
+    }
 }

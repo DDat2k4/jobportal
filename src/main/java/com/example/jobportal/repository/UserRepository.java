@@ -1,6 +1,8 @@
 package com.example.jobportal.repository;
 
 import com.example.jobportal.data.pojo.UserDTO;
+import com.example.jobportal.extension.paging.Page;
+import com.example.jobportal.extension.paging.Pageable;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SelectConditionStep;
@@ -237,4 +239,58 @@ public class UserRepository {
                 .fetchInto(String.class);
         user.setActiveTokens(activeTokens);
     }
+
+    // Phân trang UserDTO theo role
+    public Page<UserDTO> findAllUsersByRole(String roleName, Pageable pageable) {
+        int offset = pageable.getOffset();
+        int limit = pageable.getLimit();
+
+        // Join user + profile + role
+        var baseQuery = dsl.select(
+                        USERS.ID,
+                        USERS.USERNAME,
+                        USERS.EMAIL,
+                        USERS.PHONE,
+                        USER_PROFILES.NAME,
+                        USER_PROFILES.AVATAR,
+                        ROLES.NAME.as("role_name")
+                )
+                .from(USERS)
+                .leftJoin(USER_PROFILES).on(USERS.ID.eq(USER_PROFILES.USER_ID))
+                .leftJoin(USER_ROLES).on(USERS.ID.eq(USER_ROLES.USER_ID))
+                .leftJoin(ROLES).on(USER_ROLES.ROLE_ID.eq(ROLES.ID))
+                .where(USERS.ACTIVE.eq((short) 1));
+
+        if (roleName != null && !roleName.isBlank()) {
+            baseQuery = baseQuery.and(ROLES.NAME.eq(roleName));
+        }
+
+        // Tổng số bản ghi
+        long total = dsl.fetchCount(baseQuery);
+
+        // Sắp xếp
+        var order = pageable.getFirstOrder();
+        var sortField = order.getPropertyOrDefault("ID");
+        boolean asc = order.isAsc();
+
+        // Lấy dữ liệu
+        List<UserDTO> users = baseQuery
+                .orderBy(asc ? USERS.field(sortField).asc() : USERS.field(sortField).desc())
+                .limit(limit)
+                .offset(offset)
+                .fetch(record -> UserDTO.builder()
+                        .id(record.get(USERS.ID))
+                        .username(record.get(USERS.USERNAME))
+                        .email(record.get(USERS.EMAIL))
+                        .phone(record.get(USERS.PHONE))
+                        .name(record.get(USER_PROFILES.NAME))
+                        .avatar(record.get(USER_PROFILES.AVATAR))
+                        .roles(Set.of(Optional.ofNullable(record.get("role_name", String.class)).orElse("")))
+                        .build()
+                );
+
+        pageable.setTotal(total);
+        return new Page<>(pageable, users);
+    }
+
 }

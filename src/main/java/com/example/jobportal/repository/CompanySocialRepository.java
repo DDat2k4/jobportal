@@ -122,4 +122,11 @@ public class CompanySocialRepository {
                 .where(getWhereCondition(filter))
                 .fetchOne(0, long.class);
     }
+
+    public List<CompanySocial> findByCompanyId(Long companyId) {
+        return dsl.select(getFields())
+                .from(COMPANY_SOCIALS)
+                .where(COMPANY_SOCIALS.COMPANY_ID.eq(companyId))
+                .fetchInto(CompanySocial.class);
+    }
 }

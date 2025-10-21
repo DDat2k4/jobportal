@@ -31,4 +31,9 @@ public class EmployerCompanyService {
     public int delete(EmployerCompany employerCompany) {
         return repo.delete(employerCompany);
     }
+
+    // Lấy danh sách công ty mà employer đang thuộc về
+    public List<EmployerCompany> getCompaniesByEmployerId(Long employerId) {
+        return repo.findCompaniesByEmployerId(employerId);
+    }
 }

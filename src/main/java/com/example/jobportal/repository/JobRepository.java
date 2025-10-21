@@ -1,12 +1,15 @@
 package com.example.jobportal.repository;
 
 import com.example.jobportal.data.entity.Job;
+import com.example.jobportal.data.pojo.CategoryJobCount;
 import com.example.jobportal.extension.paging.Order;
 import com.example.jobportal.extension.paging.Page;
 import com.example.jobportal.extension.paging.Pageable;
+import lombok.RequiredArgsConstructor;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -15,15 +18,13 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.example.generated.jooq.tables.Jobs.JOBS;
+import static com.example.generated.jooq.tables.JobCategories.JOB_CATEGORIES;
 
+@RequiredArgsConstructor
 @Repository
 public class JobRepository {
 
     private final DSLContext dsl;
-
-    public JobRepository(DSLContext dsl) {
-        this.dsl = dsl;
-    }
 
     private static List<Field<?>> getFields() {
         return Arrays.asList(
@@ -54,6 +55,11 @@ public class JobRepository {
         if (filter.getTitle() != null && !filter.getTitle().isEmpty())
             condition = condition.and(JOBS.TITLE.containsIgnoreCase(filter.getTitle()));
 
+        if (filter.getLocation() != null && !filter.getLocation().isEmpty())
+            condition = condition.and(JOBS.LOCATION.containsIgnoreCase(filter.getLocation()));
+
+        if (filter.getDescription() != null && !filter.getDescription().isEmpty())
+            condition = condition.and(JOBS.DESCRIPTION.containsIgnoreCase(filter.getDescription()));
         return condition;
     }
 
@@ -141,9 +147,22 @@ public class JobRepository {
     }
 
     public long count(Job filter) {
-        return dsl.selectCount()
+        return dsl.fetchCount(
+                dsl.selectOne().from(JOBS).where(getWhereCondition(filter))
+        );
+    }
+
+    public List<CategoryJobCount> countJobsByCategory(Job filter) {
+        return dsl.select(
+                        JOB_CATEGORIES.ID.as("categoryId"),
+                        JOB_CATEGORIES.NAME.as("categoryName"),
+                        DSL.count(JOBS.ID).as("jobCount")
+                )
                 .from(JOBS)
+                .leftJoin(JOB_CATEGORIES).on(JOBS.CATEGORY_ID.eq(JOB_CATEGORIES.ID))
                 .where(getWhereCondition(filter))
-                .fetchOne(0, Long.class);
+                .groupBy(JOB_CATEGORIES.ID, JOB_CATEGORIES.NAME)
+                .orderBy(JOB_CATEGORIES.NAME.asc())
+                .fetchInto(CategoryJobCount.class);
     }
 }

@@ -17,6 +17,14 @@ public class EmployerCompanyController {
 
     private final EmployerCompanyService service;
 
+    // Xem mình (employer) đang ở những công ty nào
+    @GetMapping("/employers/{employerId}/companies")
+    @PreAuthorize("hasAuthority('EMPLOYER_COMPANY_READ')")
+    public ApiResponse<List<EmployerCompany>> getCompaniesByEmployer(@PathVariable Long employerId) {
+        List<EmployerCompany> companies = service.getCompaniesByEmployerId(employerId);
+        return ApiResponse.ok("Companies fetched successfully for employer", companies);
+    }
+
     // Xem ai đang trong công ty
     @GetMapping
     @PreAuthorize("hasAuthority('EMPLOYER_COMPANY_READ')")

@@ -149,4 +149,11 @@ public class CompanyAddressRepository {
         // Trả về Page
         return new Page<>(pageable, items);
     }
+
+    public List<CompanyAddress> findByCompanyId(Long companyId) {
+        return dsl.select(getFields())
+                .from(COMPANY_ADDRESSES)
+                .where(COMPANY_ADDRESSES.COMPANY_ID.eq(companyId))
+                .fetchInto(CompanyAddress.class);
+    }
 }

@@ -2,10 +2,12 @@ package com.example.jobportal.controller;
 
 import com.example.jobportal.data.entity.Company;
 import com.example.jobportal.data.entity.EmployerCompany;
+import com.example.jobportal.data.pojo.CompanyFullDTO;
 import com.example.jobportal.data.response.ApiResponse;
 import com.example.jobportal.extension.paging.Order;
 import com.example.jobportal.extension.paging.Page;
 import com.example.jobportal.extension.paging.Pageable;
+import com.example.jobportal.service.CompanyInfoService;
 import com.example.jobportal.service.CompanyService;
 import com.example.jobportal.service.EmployerCompanyService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ public class CompanyController {
 
     private final CompanyService companyService;
     private final EmployerCompanyService employerCompanyService;
+    private final CompanyInfoService companyInfoService;
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('COMPANY_READ')")
@@ -90,5 +93,13 @@ public class CompanyController {
     public ApiResponse<Integer> delete(@PathVariable Long id) {
         int deleted = companyService.delete(id);
         return ApiResponse.ok("Company deleted successfully", deleted);
+    }
+
+    @GetMapping("/{id}/full")
+    @PreAuthorize("hasAuthority('COMPANY_READ')")
+    public ApiResponse<CompanyFullDTO> getFullCompanyInfo(@PathVariable Long id) {
+        return companyInfoService.getFullCompanyInfo(id)
+                .map(dto -> ApiResponse.ok("Full company info fetched successfully", dto))
+                .orElseGet(() -> ApiResponse.error("Company not found"));
     }
 }

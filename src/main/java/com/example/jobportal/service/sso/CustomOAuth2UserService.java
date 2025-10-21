@@ -6,7 +6,6 @@ import com.example.jobportal.mapper.UserMapper;
 import com.example.jobportal.repository.UserRepository;
 import com.example.jobportal.repository.UserTokenRepository;
 import com.example.jobportal.service.JwtService;
-import com.example.jobportal.service.UserService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,8 +22,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static java.time.temporal.ChronoUnit.DAYS;
-
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
@@ -33,7 +30,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     private final UserTokenRepository userTokenRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
-    private final UserService userService;
 
     @Override
     @Transactional

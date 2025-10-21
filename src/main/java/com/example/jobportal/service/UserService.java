@@ -1,6 +1,8 @@
 package com.example.jobportal.service;
 
 import com.example.jobportal.data.pojo.UserDTO;
+import com.example.jobportal.extension.paging.Page;
+import com.example.jobportal.extension.paging.Pageable;
 import com.example.jobportal.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,5 +20,12 @@ public class UserService {
      */
     public Optional<UserDTO> getUserDetail(Long userId) {
         return userRepository.findById(userId);
+    }
+
+    /**
+     * Phân trang UserDTO theo role
+     */
+    public Page<UserDTO> getUsersByRole(String roleName, Pageable pageable) {
+        return userRepository.findAllUsersByRole(roleName, pageable);
     }
 }
