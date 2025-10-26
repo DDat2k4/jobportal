@@ -14,6 +14,7 @@ import lombok.experimental.Accessors;
 public class JobCategory {
     private Long id;
     private String name;
+    private String description;
 }
 
 

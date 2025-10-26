@@ -69,8 +69,8 @@ public class CustomOidcUserService extends OidcUserService {
                 .orElseThrow(() -> new RuntimeException("User detail not found"));
 
         // --- Sinh JWT mới
-        String accessToken = jwtService.generateToken(userDto.getUsername(), detailDto.getRoles(), detailDto.getPermissions());
-        String refreshToken = jwtService.generateRefreshToken(userDto.getUsername());
+        String accessToken = jwtService.generateToken(userDto.getId(), userDto.getUsername(), detailDto.getRoles(), detailDto.getPermissions());
+        String refreshToken = jwtService.generateRefreshToken(userDto.getId(), userDto.getUsername());
         userTokenRepository.insertToken(userDto.getId(), refreshToken);
 
         // --- Attach attributes vào OIDC

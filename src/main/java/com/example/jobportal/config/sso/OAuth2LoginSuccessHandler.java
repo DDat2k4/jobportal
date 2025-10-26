@@ -83,8 +83,8 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                 .orElseThrow(() -> new RuntimeException("User detail not found"));
 
         // Tạo JWT access + refresh token
-        String accessToken = jwtService.generateToken(user.getUsername(), detail.getRoles(), detail.getPermissions());
-        String refreshToken = jwtService.generateRefreshToken(user.getUsername());
+        String accessToken = jwtService.generateToken(user.getId() ,user.getUsername(), detail.getRoles(), detail.getPermissions());
+        String refreshToken = jwtService.generateRefreshToken(user.getId() ,user.getUsername());
 
         // Lưu refresh token vào DB
         userTokenRepository.insertToken(user.getId(), refreshToken);

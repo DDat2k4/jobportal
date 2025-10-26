@@ -74,7 +74,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         });
 
         // Lấy username thực tế
-        String finalUsername = username != null ? username : email.split("@")[0];
+        String finalUsername = (username != null) ? username : email.split("@")[0];
 
         // Lấy roles & permissions
         Set<String> roles = new HashSet<>();
@@ -84,12 +84,13 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             if (detail.getPermissions() != null) permissions.addAll(detail.getPermissions());
         });
 
-        // Sinh JWT
-        String accessToken = jwtService.generateToken(finalUsername, roles, permissions);
-        String refreshToken = jwtService.generateRefreshToken(finalUsername);
+        // 🔹 Sinh JWT (có userId)
+        String accessToken = jwtService.generateToken(userId, finalUsername, roles, permissions);
+        String refreshToken = jwtService.generateRefreshToken(userId, finalUsername);
 
         // Trả về AuthResponse
         AuthResponse authResponse = AuthResponse.builder()
+                .userId(userId)
                 .username(finalUsername)
                 .email(email)
                 .avatar(avatar)

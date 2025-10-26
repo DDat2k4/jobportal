@@ -13,6 +13,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class AuthResponse {
+    private Long userId;
     private String username;
     private String email;
     private String avatar;

@@ -12,7 +12,6 @@ import java.util.List;
 @Accessors(chain = true)
 public class CompanyFullDTO {
     private Company company;
-    private CompanyAddress addresse;
+    private CompanyAddress address;
     private List<CompanySocial> socials;
 }
-

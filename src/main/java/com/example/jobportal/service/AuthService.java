@@ -2,12 +2,10 @@ package com.example.jobportal.service;
 
 import com.example.jobportal.data.pojo.UserDTO;
 import com.example.jobportal.data.response.AuthResponse;
-import com.example.jobportal.data.response.UserDetailResponse;
 import com.example.jobportal.data.request.AuthProperties;
 import com.example.jobportal.exception.AuthException;
 import com.example.jobportal.repository.UserRepository;
 import com.example.jobportal.repository.UserTokenRepository;
-import com.example.jobportal.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,9 +24,8 @@ public class AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthProperties authProperties;
-    private final UserService userService;
 
-    // LOGIN
+    // ===================== LOGIN =====================
     public AuthResponse login(String username, String rawPassword) {
         UserDTO user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthException("User not found"));
@@ -50,7 +47,7 @@ public class AuthService {
         return generateTokens(user);
     }
 
-    // REFRESH TOKEN
+    // ===================== REFRESH TOKEN =====================
     public AuthResponse refreshToken(String refreshToken) {
         var token = userTokenRepository.findByRefreshTokenAndRevokedFalse(refreshToken)
                 .orElseThrow(() -> new AuthException("Refresh token not found or revoked"));
@@ -67,13 +64,16 @@ public class AuthService {
         UserDTO userDetail = userRepository.findById(user.getId())
                 .orElseThrow(() -> new AuthException("User detail not found"));
 
+        // Generate new access token có chứa userId
         String newAccessToken = jwtService.generateToken(
+                user.getId(),
                 user.getUsername(),
                 userDetail.getRoles(),
                 userDetail.getPermissions()
         );
 
         return AuthResponse.builder()
+                .userId(user.getId())
                 .username(user.getUsername())
                 .email(userDetail.getEmail())
                 .avatar(userDetail.getAvatar())
@@ -85,7 +85,7 @@ public class AuthService {
                 .build();
     }
 
-    // LOGOUT 1 device
+    // ===================== LOGOUT 1 DEVICE =====================
     public void logout(String refreshToken) {
         var token = userTokenRepository.findByRefreshTokenAndRevokedFalse(refreshToken)
                 .orElseThrow(() -> new AuthException("Refresh token not found or already revoked"));
@@ -94,13 +94,13 @@ public class AuthService {
         log.info("Refresh token revoked for userId={}", token.getUserId());
     }
 
-    // LOGOUT ALL DEVICES
+    // ===================== LOGOUT ALL DEVICES =====================
     public void logoutAll(Long userId) {
         userTokenRepository.revokeAllTokensByUserId(userId);
         log.info("All refresh tokens revoked for userId={}", userId);
     }
 
-    // CHANGE PASSWORD
+    // ===================== CHANGE PASSWORD =====================
     public void changePassword(String username, String oldPassword, String newPassword) {
         UserDTO user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthException("User not found"));
@@ -114,8 +114,7 @@ public class AuthService {
         log.info("Password changed and tokens revoked for user {}", username);
     }
 
-    // ---------------- PRIVATE ----------------
-
+    // ===================== PRIVATE METHODS =====================
     private void handleFailedAttempt(UserDTO user) {
         int attempts = user.getFailedAttempts() + 1;
 
@@ -143,16 +142,22 @@ public class AuthService {
         UserDTO userDetail = userRepository.findById(user.getId())
                 .orElseThrow(() -> new AuthException("User detail not found"));
 
+        // Generate access token có chứa userId
         String accessToken = jwtService.generateToken(
+                user.getId(),
                 user.getUsername(),
                 userDetail.getRoles(),
                 userDetail.getPermissions()
         );
 
-        String refreshToken = jwtService.generateRefreshToken(user.getUsername());
+        String refreshToken = jwtService.generateRefreshToken(
+                user.getId(),
+                user.getUsername()
+        );
         userTokenRepository.insertToken(user.getId(), refreshToken);
 
         return AuthResponse.builder()
+                .userId(user.getId())
                 .username(user.getUsername())
                 .email(userDetail.getEmail())
                 .avatar(userDetail.getAvatar())

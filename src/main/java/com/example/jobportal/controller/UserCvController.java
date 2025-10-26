@@ -21,7 +21,7 @@ public class UserCvController {
     private final UserCvService service;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('USER_CV_READ')")
+    @PreAuthorize("hasAuthority('USER_CV_READ') and @userSecurity.canAccessUser(#cv.userId)")
     public ApiResponse<UserCv> getById(@PathVariable Long id) {
         Optional<UserCv> cv = service.getById(id);
         return cv.map(c -> ApiResponse.ok("User CV fetched successfully", c))
@@ -67,7 +67,7 @@ public class UserCvController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('USER_CV_UPDATE')")
+    @PreAuthorize("hasAuthority('USER_CV_UPDATE') and @userSecurity.canAccessUser(#cv.userId)")
     public ApiResponse<UserCv> update(@PathVariable Long id, @RequestBody UserCv cv) {
         UserCv updated = service.update(id, cv)
                 .orElseThrow(() -> new RuntimeException("User CV not found or update failed"));
@@ -75,7 +75,7 @@ public class UserCvController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('USER_CV_DELETE')")
+    @PreAuthorize("hasAuthority('USER_CV_DELETE') and @userSecurity.canAccessUser(#id)")
     public ApiResponse<Integer> delete(@PathVariable Long id) {
         int deleted = service.delete(id);
         return ApiResponse.ok("User CV deleted successfully", deleted);
@@ -85,7 +85,7 @@ public class UserCvController {
      * Lấy CV mặc định của user
      */
     @GetMapping("/default/{userId}")
-    @PreAuthorize("hasAuthority('USER_CV_READ')")
+    @PreAuthorize("hasAuthority('USER_CV_READ') and @userSecurity.canAccessUser(#userId)")
     public ApiResponse<UserCv> getDefaultByUserId(@PathVariable Long userId) {
         Optional<UserCv> cv = service.getDefaultByUserId(userId);
         return cv.map(c -> ApiResponse.ok("Default CV fetched successfully", c))

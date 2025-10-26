@@ -38,7 +38,7 @@ public class CompanyInfoService {
 
         CompanyFullDTO dto = new CompanyFullDTO()
                 .setCompany(company)
-                .setAddresse(address)
+                .setAddress(address)
                 .setSocials(socials);
 
         return Optional.of(dto);

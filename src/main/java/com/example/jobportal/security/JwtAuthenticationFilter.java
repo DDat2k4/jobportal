@@ -1,7 +1,10 @@
-package com.example.jobportal.config;
+package com.example.jobportal.security;
 
+import com.example.jobportal.data.entity.EmployerCompany;
 import com.example.jobportal.data.pojo.UserDTO;
+import com.example.jobportal.repository.CompanyRepository;
 import com.example.jobportal.repository.UserRepository;
+import com.example.jobportal.service.EmployerCompanyService;
 import com.example.jobportal.service.JwtService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -28,6 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final EmployerCompanyService employerCompanyService;
 
     private static final String COOKIE_NAME = "ACCESS_TOKEN";
 
@@ -70,7 +74,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             UserDTO user = userRepository.findByUsername(username).orElse(null);
 
             if (user != null && jwtService.validateToken(token, user.getUsername())) {
-                // Lấy claims từ token
                 Claims claims = jwtService.parseClaims(token);
 
                 List<String> roles = claims.get("roles", List.class);
@@ -93,8 +96,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                 }
 
+                List<Long> companyIds = employerCompanyService.getCompaniesByEmployerId(user.getId())
+                        .stream()
+                        .map(EmployerCompany::getCompanyId)
+                        .collect(Collectors.toList());
+
+                CustomUserDetails principal = new CustomUserDetails(
+                        user.getId(),
+                        companyIds,
+                        user.getUsername(),
+                        user.getPasswordHash(),
+                        true,
+                        authorities
+                );
+
+                // Authentication dùng principal này
                 var authToken = new UsernamePasswordAuthenticationToken(
-                        user, null, authorities
+                        principal, null, principal.getAuthorities()
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);

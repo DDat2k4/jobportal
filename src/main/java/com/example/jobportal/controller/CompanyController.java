@@ -27,7 +27,7 @@ public class CompanyController {
     private final CompanyInfoService companyInfoService;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('COMPANY_READ')")
+    @PreAuthorize("hasAuthority('COMPANY_READ') and @companySecurity.canAccessCompany(#id)")
     public ApiResponse<Company> getById(@PathVariable Long id) {
         Optional<Company> company = companyService.getById(id);
         return company.map(c -> ApiResponse.ok("Company fetched successfully", c))
@@ -80,7 +80,7 @@ public class CompanyController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('COMPANY_UPDATE')")
+    @PreAuthorize("hasAuthority('COMPANY_UPDATE') and @companySecurity.canAccessCompany(#id)")
     public ApiResponse<Company> update(@PathVariable Long id, @RequestBody Company company) {
         company.setId(id);
         Company updated = companyService.update(id, company)
@@ -89,14 +89,14 @@ public class CompanyController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('COMPANY_DELETE')")
+    @PreAuthorize("hasAuthority('COMPANY_DELETE') and @companySecurity.canAccessCompany(#id)")
     public ApiResponse<Integer> delete(@PathVariable Long id) {
         int deleted = companyService.delete(id);
         return ApiResponse.ok("Company deleted successfully", deleted);
     }
 
     @GetMapping("/{id}/full")
-    @PreAuthorize("hasAuthority('COMPANY_READ')")
+    @PreAuthorize("hasAuthority('COMPANY_READ') and @companySecurity.canAccessCompany(#id)")
     public ApiResponse<CompanyFullDTO> getFullCompanyInfo(@PathVariable Long id) {
         return companyInfoService.getFullCompanyInfo(id)
                 .map(dto -> ApiResponse.ok("Full company info fetched successfully", dto))

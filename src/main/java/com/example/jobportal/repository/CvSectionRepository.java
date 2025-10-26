@@ -4,27 +4,27 @@ import com.example.jobportal.data.entity.CvSection;
 import com.example.jobportal.extension.paging.Order;
 import com.example.jobportal.extension.paging.Page;
 import com.example.jobportal.extension.paging.Pageable;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.JSONB;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.example.generated.jooq.tables.CvSections.CV_SECTIONS;
 import static org.jooq.impl.DSL.noCondition;
 
 @Repository
+@RequiredArgsConstructor
 public class CvSectionRepository {
 
     private final DSLContext dsl;
-
-    public CvSectionRepository(DSLContext dsl) {
-        this.dsl = dsl;
-    }
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static List<Field<?>> getFields() {
         return Arrays.asList(
@@ -38,7 +38,7 @@ public class CvSectionRepository {
         );
     }
 
-    public Condition getWhereCondition(CvSection filter) {
+    private Condition getWhereCondition(CvSection filter) {
         Condition condition = noCondition();
 
         if (filter.getId() != null) {
@@ -60,40 +60,72 @@ public class CvSectionRepository {
         return condition;
     }
 
+    private JSONB toJsonb(Object content) {
+        if (content == null) return null;
+        try {
+            return JSONB.valueOf(objectMapper.writeValueAsString(content));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to convert content to JSONB", e);
+        }
+    }
+
+    private Map<String, Object> fromJsonb(JSONB jsonb) {
+        if (jsonb == null) return null;
+        try {
+            return objectMapper.readValue(jsonb.data(), new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse JSONB content", e);
+        }
+    }
+
+    private CvSection mapRecordToEntity(com.example.generated.jooq.tables.records.CvSectionsRecord record) {
+        if (record == null) return null;
+        return new CvSection()
+                .setId(record.getId())
+                .setCvId(record.getCvId())
+                .setType(record.getType())
+                .setTitle(record.getTitle())
+                .setContent(fromJsonb(record.getContent()))
+                .setPosition(record.getPosition())
+                .setCreatedAt(record.getCreatedAt());
+    }
+
     public Optional<CvSection> findById(Long id) {
-        return dsl.select(getFields())
-                .from(CV_SECTIONS)
+        return dsl.selectFrom(CV_SECTIONS)
                 .where(CV_SECTIONS.ID.eq(id))
-                .fetchOptionalInto(CvSection.class);
+                .fetchOptional(this::mapRecordToEntity);
     }
 
     public Optional<CvSection> findByFilter(CvSection filter) {
-        return dsl.select(getFields())
-                .from(CV_SECTIONS)
+        return dsl.selectFrom(CV_SECTIONS)
                 .where(getWhereCondition(filter))
-                .fetchOptionalInto(CvSection.class);
+                .fetchOptional(this::mapRecordToEntity);
     }
 
     public CvSection create(CvSection section) {
-        return dsl.insertInto(CV_SECTIONS)
+        var record = dsl.insertInto(CV_SECTIONS)
                 .set(CV_SECTIONS.CV_ID, section.getCvId())
                 .set(CV_SECTIONS.TYPE, section.getType())
                 .set(CV_SECTIONS.TITLE, section.getTitle())
-                .set(CV_SECTIONS.CONTENT, section.getContent())
+                .set(CV_SECTIONS.CONTENT, toJsonb(section.getContent()))
                 .set(CV_SECTIONS.POSITION, section.getPosition())
                 .set(CV_SECTIONS.CREATED_AT, LocalDateTime.now())
                 .returning()
-                .fetchOneInto(CvSection.class);
+                .fetchOne();
+
+        return mapRecordToEntity(record);
     }
 
     public Optional<CvSection> update(Long id, CvSection section) {
-        return dsl.update(CV_SECTIONS)
+        var record = dsl.update(CV_SECTIONS)
                 .set(CV_SECTIONS.TITLE, section.getTitle())
-                .set(CV_SECTIONS.CONTENT, section.getContent())
+                .set(CV_SECTIONS.CONTENT, toJsonb(section.getContent()))
                 .set(CV_SECTIONS.POSITION, section.getPosition())
                 .where(CV_SECTIONS.ID.eq(id))
                 .returning()
-                .fetchOptionalInto(CvSection.class);
+                .fetchOne();
+
+        return Optional.ofNullable(mapRecordToEntity(record));
     }
 
     public int delete(Long id) {
@@ -109,16 +141,17 @@ public class CvSectionRepository {
         pageable.setTotal(total);
 
         Order order = pageable.getFirstOrder();
-        String sortField = order.getPropertyOrDefault("POSITION");
+        String sortField = order.getPropertyOrDefault("position");
         boolean isAsc = order.isAsc();
 
-        List<CvSection> items = dsl.select(getFields())
-                .from(CV_SECTIONS)
+        List<CvSection> items = dsl.selectFrom(CV_SECTIONS)
                 .where(getWhereCondition(filter))
-                .orderBy(isAsc ? CV_SECTIONS.field(sortField).asc() : CV_SECTIONS.field(sortField).desc())
+                .orderBy(isAsc
+                        ? CV_SECTIONS.field(sortField).asc()
+                        : CV_SECTIONS.field(sortField).desc())
                 .limit(limit)
                 .offset(offset)
-                .fetchInto(CvSection.class);
+                .fetch(this::mapRecordToEntity);
 
         return new Page<>(pageable, items);
     }
@@ -130,20 +163,13 @@ public class CvSectionRepository {
                 .fetchOne(0, long.class);
     }
 
-    /**
-     * Lấy danh sách tất cả section theo CV ID, sắp xếp theo thứ tự hiển thị
-     */
     public List<CvSection> findByCvId(Long cvId) {
-        return dsl.select(getFields())
-                .from(CV_SECTIONS)
+        return dsl.selectFrom(CV_SECTIONS)
                 .where(CV_SECTIONS.CV_ID.eq(cvId))
                 .orderBy(CV_SECTIONS.POSITION.asc())
-                .fetchInto(CvSection.class);
+                .fetch(this::mapRecordToEntity);
     }
 
-    /**
-     * Xóa toàn bộ section theo CV ID (khi xóa CV hoặc reset)
-     */
     public int deleteByCvId(Long cvId) {
         return dsl.deleteFrom(CV_SECTIONS)
                 .where(CV_SECTIONS.CV_ID.eq(cvId))

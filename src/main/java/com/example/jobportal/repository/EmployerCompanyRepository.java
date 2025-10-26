@@ -106,4 +106,13 @@ public class EmployerCompanyRepository {
                 .where(EMPLOYER_COMPANIES.EMPLOYER_ID.eq(employerId))
                 .fetchInto(EmployerCompany.class);
     }
+
+    public boolean existsByEmployerIdAndCompanyId(Long employerId, Long companyId) {
+        return dsl.fetchExists(
+                dsl.selectOne()
+                        .from(EMPLOYER_COMPANIES)
+                        .where(EMPLOYER_COMPANIES.EMPLOYER_ID.eq(employerId))
+                        .and(EMPLOYER_COMPANIES.COMPANY_ID.eq(companyId))
+        );
+    }
 }

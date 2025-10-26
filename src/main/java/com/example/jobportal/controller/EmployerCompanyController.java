@@ -37,7 +37,7 @@ public class EmployerCompanyController {
 
     // Thêm người khác vào công ty
     @PostMapping
-    @PreAuthorize("hasAuthority('EMPLOYER_COMPANY_CREATE')")
+    @PreAuthorize("hasAuthority('EMPLOYER_COMPANY_CREATE') and @companySecurity.canAccessCompany(#ec.companyId)")
     public ApiResponse<EmployerCompany> create(@RequestBody EmployerCompany ec) {
         EmployerCompany created = service.create(ec);
         return ApiResponse.ok("EmployerCompany created successfully", created);
@@ -52,7 +52,7 @@ public class EmployerCompanyController {
     }
     // Xóa người khỏi công ty
     @DeleteMapping
-    @PreAuthorize("hasAuthority('EMPLOYER_COMPANY_DELETE')")
+    @PreAuthorize("hasAuthority('EMPLOYER_COMPANY_DELETE') and @companySecurity.canAccessCompany(#ec.companyId)")
     public ApiResponse<Integer> delete(@RequestBody EmployerCompany ec) {
         int deleted = service.delete(ec);
         return ApiResponse.ok("EmployerCompany deleted successfully", deleted);

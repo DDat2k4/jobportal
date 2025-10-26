@@ -39,7 +39,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         String email = (String) oauth2User.getAttributes().get("email");
         String tmpUsername = email != null ? email : "fb-" + oauth2User.getAttributes().get("id");
 
-        // 1. Provision local user
+        // Provision local user
         Optional<UserDTO> optUser = userRepository.findByUsername(tmpUsername);
 
         UserDTO user = optUser.orElseGet(() -> {
@@ -49,35 +49,38 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     .orElseThrow(() -> new RuntimeException("Failed to create local user"));
         });
 
-        // 2. Update last login
+        // Update last login
         userRepository.updateLastLogin(user.getId());
 
-        // 3. Revoke old tokens
+        // Revoke old tokens
         userTokenRepository.findActiveTokensByUserId(user.getId()).forEach(t ->
                 userTokenRepository.revokeToken(t.getId())
         );
 
-        // 4. Get roles & permissions
+        // Get roles & permissions
         UserDTO userDetail = userRepository.findById(user.getId())
                 .orElseThrow(() -> new RuntimeException("User detail not found"));
 
         UserDetailResponse userResponse = UserMapper.toResponse(userDetail);
 
-        // 5. Generate new tokens
+        // Generate new tokens (⚙️ cập nhật theo JwtService mới)
         String accessToken = jwtService.generateToken(
+                user.getId(),
                 user.getUsername(),
                 userResponse.getRoles(),
                 userResponse.getPermissions()
         );
-        String refreshToken = jwtService.generateRefreshToken(user.getUsername());
+        String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getUsername());
 
+        // Lưu refresh token vào DB
         userTokenRepository.insertToken(user.getId(), refreshToken);
 
-        // 6. Merge OAuth2 attributes + local tokens + roles/permissions
+        // Merge OAuth2 attributes + local tokens + roles/permissions
         Map<String, Object> attrs = new HashMap<>(oauth2User.getAttributes());
+        attrs.put("localUserId", user.getId());
+        attrs.put("localUsername", user.getUsername());
         attrs.put("localAccessToken", accessToken);
         attrs.put("localRefreshToken", refreshToken);
-        attrs.put("localUsername", user.getUsername());
         attrs.put("roles", userResponse.getRoles());
         attrs.put("permissions", userResponse.getPermissions());
 

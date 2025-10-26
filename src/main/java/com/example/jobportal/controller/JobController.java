@@ -67,7 +67,7 @@ public class JobController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('JOB_UPDATE')")
+    @PreAuthorize("hasAuthority('JOB_UPDATE') and @jobSecurity.isOwner(#id)")
     public ApiResponse<Job> update(@PathVariable Long id, @RequestBody Job job) {
         job.setId(id);
         Job updated = jobService.update(job)
@@ -76,7 +76,7 @@ public class JobController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('JOB_DELETE')")
+    @PreAuthorize("hasAuthority('JOB_DELETE') and @jobSecurity.isOwner(#id)")
     public ApiResponse<Integer> delete(@PathVariable Long id) {
         int deleted = jobService.delete(id);
         return ApiResponse.ok("Job deleted successfully", deleted);

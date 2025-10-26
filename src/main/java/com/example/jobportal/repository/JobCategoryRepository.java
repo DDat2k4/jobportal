@@ -28,18 +28,26 @@ public class JobCategoryRepository {
     private static List<Field<?>> getFields() {
         return Arrays.asList(
                 JOB_CATEGORIES.ID,
-                JOB_CATEGORIES.NAME
+                JOB_CATEGORIES.NAME,
+                JOB_CATEGORIES.DESCRIPTION
         );
     }
 
     private Condition getWhereCondition(JobCategory filter) {
         Condition condition = JOB_CATEGORIES.ID.isNotNull();
+
         if (filter.getId() != null) {
             condition = condition.and(JOB_CATEGORIES.ID.eq(filter.getId()));
         }
+
         if (filter.getName() != null && !filter.getName().isBlank()) {
             condition = condition.and(JOB_CATEGORIES.NAME.likeIgnoreCase("%" + filter.getName().trim() + "%"));
         }
+
+        if (filter.getDescription() != null && !filter.getDescription().isBlank()) {
+            condition = condition.and(JOB_CATEGORIES.DESCRIPTION.likeIgnoreCase("%" + filter.getDescription().trim() + "%"));
+        }
+
         return condition;
     }
 
@@ -53,15 +61,17 @@ public class JobCategoryRepository {
     public JobCategory create(JobCategory category) {
         return dsl.insertInto(JOB_CATEGORIES)
                 .set(JOB_CATEGORIES.NAME, category.getName())
-                .returning()
+                .set(JOB_CATEGORIES.DESCRIPTION, category.getDescription())
+                .returning(getFields())
                 .fetchOneInto(JobCategory.class);
     }
 
     public Optional<JobCategory> update(JobCategory category) {
         return dsl.update(JOB_CATEGORIES)
                 .set(JOB_CATEGORIES.NAME, category.getName())
+                .set(JOB_CATEGORIES.DESCRIPTION, category.getDescription())
                 .where(JOB_CATEGORIES.ID.eq(category.getId()))
-                .returning()
+                .returning(getFields())
                 .fetchOptionalInto(JobCategory.class);
     }
 

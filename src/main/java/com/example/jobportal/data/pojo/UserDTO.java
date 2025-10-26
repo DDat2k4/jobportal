@@ -17,6 +17,7 @@ public class UserDTO {
     private Long id;
     private String username;
     private String email;
+    private List<Long> companyIds;
     private String phone;
     private String passwordHash;
     private int failedAttempts;
