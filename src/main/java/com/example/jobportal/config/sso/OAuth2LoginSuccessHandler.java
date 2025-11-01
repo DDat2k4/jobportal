@@ -58,13 +58,17 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
             // Nếu cần tạo profile và role mặc định
             userRepository.createProfile(userId, defaultUsername, avatar);
+            // Nếu FE có gửi roleType thì lấy ra
             String requestedRole = request.getParameter("roleType");
-            long defaultRoleId = RoleConstant.ROLE_EMPLOYER; // fallback
 
-            defaultRoleId = CommonUtils.toLong(requestedRole, defaultRoleId);
+            // Chỉ chấp nhận 2 hoặc 3, mặc định là 2
+            long defaultRoleId = RoleConstant.ROLE_EMPLOYER; // fallback = 2
+            long parsedRole = CommonUtils.toLong(requestedRole, defaultRoleId);
 
-            if (defaultRoleId != RoleConstant.ROLE_JOB_SEEKER && defaultRoleId != RoleConstant.ROLE_EMPLOYER) {
-                defaultRoleId = RoleConstant.ROLE_EMPLOYER;
+            if (parsedRole == RoleConstant.ROLE_EMPLOYER || parsedRole == RoleConstant.ROLE_JOB_SEEKER) {
+                defaultRoleId = parsedRole;
+            } else {
+                log.warn("Invalid roleType received from OAuth2: {} → fallback to EMPLOYER", requestedRole);
             }
 
             userRepository.assignRole(userId, defaultRoleId);

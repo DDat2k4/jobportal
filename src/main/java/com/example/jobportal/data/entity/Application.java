@@ -26,6 +26,7 @@ public class Application {
      * INTERVIEW - Đã được mời phỏng vấn
      * HIRED     - Đã được tuyển
      * REJECTED  - Bị từ chối
+     * CANCLED   - Tự hủy
      */
     private String status;
     private String feedback;

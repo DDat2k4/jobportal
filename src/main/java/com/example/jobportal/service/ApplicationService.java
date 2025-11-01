@@ -45,9 +45,12 @@ public class ApplicationService {
 
     // Bản đồ quy tắc chuyển trạng thái
     private static final Map<String, List<String>> TRANSITIONS = Map.of(
-            "PENDING", List.of("APPROVED", "REJECTED"),
-            "APPROVED", List.of("INTERVIEW", "HIRED"),
-            "INTERVIEW", List.of("HIRED", "REJECTED")
+            "PENDING", List.of("APPROVED", "REJECTED", "CANCELED"),
+            "APPROVED", List.of("INTERVIEW", "REJECTED", "CANCELED"),
+            "INTERVIEW", List.of("HIRED", "REJECTED", "CANCELED"),
+            "HIRED", List.of(),        // Trạng thái cuối
+            "REJECTED", List.of(),     // Trạng thái cuối
+            "CANCELED", List.of()      // Nếu có trạng thái hủy
     );
 
     public Application changeStatus(Long id, String newStatus, String feedback) {

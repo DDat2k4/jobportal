@@ -1,44 +1,92 @@
 package com.example.jobportal.service;
 
+import com.example.jobportal.data.entity.Permission;
+import com.example.jobportal.data.entity.Role;
+import com.example.jobportal.extension.paging.Page;
+import com.example.jobportal.extension.paging.Pageable;
+import com.example.jobportal.repository.RolePermissionRepository;
+import com.example.jobportal.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
-import org.jooq.DSLContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
-import static com.example.generated.jooq.tables.RolePermissions.ROLE_PERMISSIONS;
-
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class RoleService {
 
-    private final DSLContext dsl;
+    private final RoleRepository roleRepo;
+    private final RolePermissionRepository rolePermissionRepo;
 
-    /**
-     * Gán permission cho role
-     */
-    public void assignPermissionsToRole(Long roleId, List<Long> permissionIds) {
-        // Xóa hết permission cũ
-        dsl.deleteFrom(ROLE_PERMISSIONS)
-                .where(ROLE_PERMISSIONS.ROLE_ID.eq(roleId))
-                .execute();
+    public Optional<Role> getById(Long id) {
+        return roleRepo.findById(id);
+    }
 
-        // Thêm permission mới
-        for (Long pid : permissionIds) {
-            dsl.insertInto(ROLE_PERMISSIONS)
-                    .set(ROLE_PERMISSIONS.ROLE_ID, roleId)
-                    .set(ROLE_PERMISSIONS.PERMISSION_ID, pid)
-                    .execute();
-        }
+    public Role create(Role role) {
+        return roleRepo.create(role);
+    }
+
+    public Optional<Role> update(Long id, Role role) {
+        return roleRepo.update(id, role);
+    }
+
+    public int delete(Long id) {
+        rolePermissionRepo.deleteByRoleId(id);
+        return roleRepo.delete(id);
+    }
+
+    public Page<Role> getAll(Role filter, Pageable pageable) {
+        return roleRepo.findAll(filter, pageable);
     }
 
     /**
-     * Lấy permissionIds của role
+     * Gán permission cho role (thay thế toàn bộ danh sách)
      */
-    public List<Long> getPermissionsOfRole(Long roleId) {
-        return dsl.select(ROLE_PERMISSIONS.PERMISSION_ID)
-                .from(ROLE_PERMISSIONS)
-                .where(ROLE_PERMISSIONS.ROLE_ID.eq(roleId))
-                .fetchInto(Long.class);
+    public void assignPermissionsToRole(Long roleId, List<Long> permissionIds) {
+        rolePermissionRepo.deleteByRoleId(roleId);
+        if (permissionIds != null && !permissionIds.isEmpty()) {
+            for (Long pid : permissionIds) {
+                rolePermissionRepo.addPermissionToRole(roleId, pid);
+            }
+        }
+    }
+
+    public List<Long> getPermissionIdsOfRole(Long roleId) {
+        return rolePermissionRepo.findByRoleId(roleId)
+                .stream()
+                .map(rp -> rp.getPermissionId())
+                .toList();
+    }
+
+    /**
+     * Lấy danh sách permissionId của role
+     */
+    public List<Permission> getPermissionsOfRole(Long roleId) {
+        return rolePermissionRepo.findPermissionsByRoleId(roleId);
+    }
+
+    /**
+     *  Thêm một quyền vào role
+     */
+    public void addPermissionToRole(Long roleId, Long permissionId) {
+        rolePermissionRepo.addPermissionToRole(roleId, permissionId);
+    }
+
+    /**
+     * Xóa một quyền khỏi role
+     */
+    public void removePermissionFromRole(Long roleId, Long permissionId) {
+        rolePermissionRepo.deletePermissionFromRole(roleId, permissionId);
+    }
+
+    /**
+     * Kiểm tra role có quyền cụ thể hay không
+     */
+    public boolean hasPermission(Long roleId, Long permissionId) {
+        return rolePermissionRepo.findByRoleId(roleId).stream()
+                .anyMatch(rp -> rp.getPermissionId().equals(permissionId));
     }
 }

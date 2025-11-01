@@ -21,7 +21,7 @@ public class CvSectionController {
     private final CvSectionService service;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('CV_SECTION_READ')")
+    @PreAuthorize("hasAuthority('CV_SECTION_READ') and @userSecurity.canAccessCvSection(#id)")
     public ApiResponse<CvSection> getById(@PathVariable Long id) {
         return service.getById(id)
                 .map(section -> ApiResponse.ok("Fetched successfully", section))
@@ -57,21 +57,21 @@ public class CvSectionController {
     }
 
     @GetMapping("/by-cv/{cvId}")
-    @PreAuthorize("hasAuthority('CV_SECTION_READ')")
+    @PreAuthorize("hasAuthority('CV_SECTION_READ') and @userSecurity.canAccessCv(#cvId)")
     public ApiResponse<List<CvSection>> getByCvId(@PathVariable Long cvId) {
         List<CvSection> sections = service.getByCvId(cvId);
         return ApiResponse.ok("Fetched sections for CV ID: " + cvId, sections);
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('CV_SECTION_CREATE')")
+    @PreAuthorize("hasAuthority('CV_SECTION_CREATE') and @userSecurity.canAccessCv(#section.cvId)")
     public ApiResponse<CvSection> create(@RequestBody CvSection section) {
         CvSection created = service.create(section);
         return ApiResponse.ok("CV Section created successfully", created);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('CV_SECTION_UPDATE')")
+    @PreAuthorize("hasAuthority('CV_SECTION_UPDATE') and @userSecurity.canAccessCvSection(#id)")
     public ApiResponse<CvSection> update(@PathVariable Long id, @RequestBody CvSection section) {
         Optional<CvSection> updated = service.update(id, section);
         return updated.map(s -> ApiResponse.ok("CV Section updated successfully", s))
@@ -79,7 +79,7 @@ public class CvSectionController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('CV_SECTION_DELETE')")
+    @PreAuthorize("hasAuthority('CV_SECTION_DELETE') and @userSecurity.canAccessCvSection(#id)")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         int deleted = service.delete(id);
         return deleted > 0
@@ -88,7 +88,7 @@ public class CvSectionController {
     }
 
     @DeleteMapping("/by-cv/{cvId}")
-    @PreAuthorize("hasAuthority('CV_SECTION_DELETE')")
+    @PreAuthorize("hasAuthority('CV_SECTION_DELETE') and @userSecurity.canAccessCv(#cvId)")
     public ApiResponse<Integer> deleteByCvId(@PathVariable Long cvId) {
         int deleted = service.deleteByCvId(cvId);
         return ApiResponse.ok("Deleted all sections for CV ID: " + cvId, deleted);

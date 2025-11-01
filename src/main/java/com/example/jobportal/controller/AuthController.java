@@ -38,13 +38,14 @@ public class AuthController {
         userRepository.createProfile(userId, request.getUsername(), null);
 
         // Gán role
-        long roleId = RoleConstant.ROLE_EMPLOYER;
-        String requestedRole = request.getRoleType();
-        if (RoleConstant.ROLE_JOB_SEEKER == CommonUtils.toLong(requestedRole, 0L) ||
-                RoleConstant.ROLE_EMPLOYER == CommonUtils.toLong(requestedRole, 0L)) {
-            roleId = CommonUtils.toLong(requestedRole, RoleConstant.ROLE_EMPLOYER);
+        long requestedRole = CommonUtils.toLong(request.getRoleType(), 0L);
+
+        if (requestedRole != RoleConstant.ROLE_EMPLOYER &&
+                requestedRole != RoleConstant.ROLE_JOB_SEEKER) {
+            return ResponseEntity.ok(new ApiResponse<>(false, "Invalid role type", null));
         }
-        userRepository.assignRole(userId, roleId);
+
+        userRepository.assignRole(userId, requestedRole);
 
         return ResponseEntity.ok(new ApiResponse<>(true, "User registered successfully!", null));
     }

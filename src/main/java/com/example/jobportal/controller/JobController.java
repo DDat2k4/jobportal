@@ -22,8 +22,8 @@ public class JobController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('JOB_READ')")
     public ApiResponse<Job> getById(@PathVariable Long id) {
-        Optional<Job> job = jobService.getById(id);
-        return job.map(j -> ApiResponse.ok("Job fetched successfully", j))
+        return jobService.getById(id)
+                .map(j -> ApiResponse.ok("Job fetched successfully", j))
                 .orElseGet(() -> ApiResponse.error("Job not found"));
     }
 
@@ -40,27 +40,23 @@ public class JobController {
             @RequestParam(required = false) Boolean asc
     ) {
         Pageable pageable = new Pageable(page, size);
-
-        // Sắp xếp động
         if (sortBy != null) {
-            pageable.addOrder(sortBy, asc != null && asc ? Order.Direction.ASC : Order.Direction.DESC);
+            pageable.addOrder(sortBy, Boolean.TRUE.equals(asc) ? Order.Direction.ASC : Order.Direction.DESC);
         } else {
             pageable.setDefaultSort("id");
         }
 
-        // Lọc theo các tham số
         Job filter = new Job()
                 .setTitle(title)
                 .setCompanyId(companyId)
                 .setCategoryId(categoryId)
                 .setLocation(location);
 
-        Page<Job> result = jobService.getAll(filter, pageable);
-        return ApiResponse.ok("Jobs fetched successfully", result);
+        return ApiResponse.ok("Jobs fetched successfully", jobService.getAll(filter, pageable));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('JOB_CREATE')")
+    @PreAuthorize("hasAuthority('JOB_CREATE') and @jobSecurity.canAccessCompany(#job.companyId)")
     public ApiResponse<Job> create(@RequestBody Job job) {
         Job created = jobService.create(job);
         return ApiResponse.ok("Job created successfully", created);
@@ -69,15 +65,25 @@ public class JobController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('JOB_UPDATE') and @jobSecurity.isOwner(#id)")
     public ApiResponse<Job> update(@PathVariable Long id, @RequestBody Job job) {
+        Optional<Job> existing = jobService.getById(id);
+        if (existing.isEmpty()) {
+            return ApiResponse.error("Job not found");
+        }
+
         job.setId(id);
         Job updated = jobService.update(job)
-                .orElseThrow(() -> new RuntimeException("Job not found or update failed"));
+                .orElseThrow(() -> new RuntimeException("Job update failed"));
         return ApiResponse.ok("Job updated successfully", updated);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('JOB_DELETE') and @jobSecurity.isOwner(#id)")
     public ApiResponse<Integer> delete(@PathVariable Long id) {
+        Optional<Job> existing = jobService.getById(id);
+        if (existing.isEmpty()) {
+            return ApiResponse.error("Job not found");
+        }
+
         int deleted = jobService.delete(id);
         return ApiResponse.ok("Job deleted successfully", deleted);
     }

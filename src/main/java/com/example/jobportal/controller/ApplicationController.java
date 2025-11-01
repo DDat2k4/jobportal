@@ -20,14 +20,21 @@ public class ApplicationController {
 
     private final ApplicationService service;
 
+    /**
+     * Lấy chi tiết 1 application
+     */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('APPLICATION_READ')")
+    @PreAuthorize("hasAuthority('APPLICATION_READ') and @applicationSecurity.canViewOrModify(#id)")
     public ApiResponse<Application> getById(@PathVariable Long id) {
         Optional<Application> application = service.getById(id);
         return application.map(a -> ApiResponse.ok("Application fetched successfully", a))
                 .orElseGet(() -> ApiResponse.error("Application not found"));
     }
 
+    /**
+     * Lấy danh sách application (phân trang + filter)
+     * ADMIN, EMPLOYER hoặc SEEKER có quyền đọc
+     */
     @GetMapping
     @PreAuthorize("hasAuthority('APPLICATION_READ')")
     public ApiResponse<Page<Application>> getAll(
@@ -41,14 +48,12 @@ public class ApplicationController {
     ) {
         Pageable pageable = new Pageable(page, size);
 
-        // Nếu có sortBy thì thêm order, không thì dùng mặc định
         if (sortBy != null && !sortBy.isBlank()) {
             pageable.addOrder(sortBy, asc != null && asc ? Order.Direction.ASC : Order.Direction.DESC);
         } else {
             pageable.setDefaultSort("id");
         }
 
-        // Tạo filter entity
         Application filter = new Application()
                 .setSeekerId(userId)
                 .setJobId(jobId)
@@ -58,6 +63,9 @@ public class ApplicationController {
         return ApiResponse.ok("Applications fetched successfully", result);
     }
 
+    /**
+     * Người dùng apply job
+     */
     @PostMapping
     @PreAuthorize("hasAuthority('APPLICATION_CREATE')")
     public ApiResponse<Application> create(@RequestBody Application application) {
@@ -65,24 +73,32 @@ public class ApplicationController {
         return ApiResponse.ok("Application created successfully", created);
     }
 
+    /**
+     * Cập nhật application (chỉ chủ sở hữu hoặc employer liên quan)
+     */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('APPLICATION_UPDATE')")
+    @PreAuthorize("hasAuthority('APPLICATION_UPDATE') and @applicationSecurity.canViewOrModify(#id)")
     public ApiResponse<Application> update(@PathVariable Long id, @RequestBody Application application) {
         Application updated = service.update(id, application)
                 .orElseThrow(() -> new RuntimeException("Application not found or update failed"));
         return ApiResponse.ok("Application updated successfully", updated);
     }
 
+    /**
+     * Xóa application (chỉ admin hoặc chủ sở hữu)
+     */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('APPLICATION_DELETE')")
+    @PreAuthorize("hasAuthority('APPLICATION_DELETE') and @applicationSecurity.canViewOrModify(#id)")
     public ApiResponse<Integer> delete(@PathVariable Long id) {
         int deleted = service.delete(id);
         return ApiResponse.ok("Application deleted successfully", deleted);
     }
 
-    // Thay đổi trạng thái cho người muốn apply cv
+    /**
+     * Cập nhật trạng thái (EMPLOYER hoặc ADMIN mới được phép)
+     */
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAuthority('APPLICATION_UPDATE_STATUS')")
+    @PreAuthorize("hasAuthority('APPLICATION_UPDATE_STATUS') and @applicationSecurity.canViewOrModify(#id)")
     public ApiResponse<Application> updateStatus(
             @PathVariable Long id,
             @RequestBody StatusUpdateRequest request

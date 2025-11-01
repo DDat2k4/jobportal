@@ -1,6 +1,7 @@
 package com.example.jobportal.repository;
 
 import com.example.jobportal.data.entity.Job;
+import com.example.jobportal.data.pojo.ApplicationWithCompany;
 import com.example.jobportal.data.pojo.CategoryJobCount;
 import com.example.jobportal.extension.paging.Order;
 import com.example.jobportal.extension.paging.Page;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static com.example.generated.jooq.Tables.APPLICATIONS;
 import static com.example.generated.jooq.tables.Jobs.JOBS;
 import static com.example.generated.jooq.tables.JobCategories.JOB_CATEGORIES;
 
@@ -121,20 +123,15 @@ public class JobRepository {
         pageable = pageable != null ? pageable : new Pageable();
         int offset = pageable.getOffset();
         int limit = pageable.getLimit();
-
-        // Sort
         Order order = pageable.getFirstOrder();
         String sortField = order.getPropertyOrDefault("id");
         boolean isAsc = order.isAsc();
 
         Field<?> sort = JOBS.field(sortField);
-        if (sort == null) sort = JOBS.ID; // fallback
+        if (sort == null) sort = JOBS.ID;
 
-        // Count tổng
         long total = count(filter);
         pageable.setTotal(total);
-
-        // Query chính
         List<Job> items = dsl.select(getFields())
                 .from(JOBS)
                 .where(getWhereCondition(filter))
@@ -164,5 +161,20 @@ public class JobRepository {
                 .groupBy(JOB_CATEGORIES.ID, JOB_CATEGORIES.NAME)
                 .orderBy(JOB_CATEGORIES.NAME.asc())
                 .fetchInto(CategoryJobCount.class);
+    }
+
+    /**
+     * Lấy thông tin cơ bản của application kèm companyId của job tương ứng
+     */
+    public Optional<ApplicationWithCompany> findApplicationWithJobCompany(Long applicationId) {
+        return dsl.select(
+                        APPLICATIONS.ID.as("id"),
+                        APPLICATIONS.SEEKER_ID.as("seekerId"),
+                        JOBS.COMPANY_ID.as("companyId")
+                )
+                .from(APPLICATIONS)
+                .join(JOBS).on(APPLICATIONS.JOB_ID.eq(JOBS.ID))
+                .where(APPLICATIONS.ID.eq(applicationId))
+                .fetchOptionalInto(ApplicationWithCompany.class);
     }
 }

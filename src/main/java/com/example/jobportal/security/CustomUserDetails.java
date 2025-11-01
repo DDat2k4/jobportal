@@ -2,7 +2,9 @@ package com.example.jobportal.security;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class CustomUserDetails implements UserDetails {
@@ -14,8 +16,14 @@ public class CustomUserDetails implements UserDetails {
     private final boolean active;
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public CustomUserDetails(Long id, List<Long> companyIds, String username, String password, boolean active,
-                             Collection<? extends GrantedAuthority> authorities) {
+    public CustomUserDetails(
+            Long id,
+            List<Long> companyIds,
+            String username,
+            String password,
+            boolean active,
+            Collection<? extends GrantedAuthority> authorities
+    ) {
         this.id = id;
         this.companyIds = companyIds;
         this.username = username;
@@ -29,7 +37,14 @@ public class CustomUserDetails implements UserDetails {
     }
 
     public List<Long> getCompanyIds() {
-        return companyIds;
+        return companyIds != null ? companyIds : Collections.emptyList();
+    }
+
+    public boolean hasRole(String roleName) {
+        if (roleName == null) return false;
+        String normalized = roleName.startsWith("ROLE_") ? roleName : "ROLE_" + roleName;
+        return authorities.stream()
+                .anyMatch(a -> a.getAuthority().equalsIgnoreCase(normalized));
     }
 
     @Override
@@ -67,4 +82,3 @@ public class CustomUserDetails implements UserDetails {
         return active;
     }
 }
-

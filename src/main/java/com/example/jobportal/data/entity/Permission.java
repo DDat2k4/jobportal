@@ -12,5 +12,3 @@ public class Permission {
     private String code;
     private String description;
 }
-
-

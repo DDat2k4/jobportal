@@ -21,7 +21,7 @@ public class UserCvController {
     private final UserCvService service;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('USER_CV_READ') and @userSecurity.canAccessUser(#cv.userId)")
+    @PreAuthorize("hasAuthority('USER_CV_READ') and @userSecurity.canAccessCv(#id)")
     public ApiResponse<UserCv> getById(@PathVariable Long id) {
         Optional<UserCv> cv = service.getById(id);
         return cv.map(c -> ApiResponse.ok("User CV fetched successfully", c))
@@ -42,9 +42,8 @@ public class UserCvController {
     ) {
         Pageable pageable = new Pageable(page, size);
 
-        // setup sort
         if (sortBy != null && !sortBy.isBlank()) {
-            pageable.addOrder(sortBy, asc != null && asc ? Order.Direction.ASC : Order.Direction.DESC);
+            pageable.addOrder(sortBy, Boolean.TRUE.equals(asc) ? Order.Direction.ASC : Order.Direction.DESC);
         } else {
             pageable.setDefaultSort("id");
         }
@@ -60,14 +59,14 @@ public class UserCvController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('USER_CV_CREATE')")
+    @PreAuthorize("hasAuthority('USER_CV_CREATE') and @userSecurity.canAccessUser(#cv.userId)")
     public ApiResponse<UserCv> create(@RequestBody UserCv cv) {
         UserCv created = service.create(cv);
         return ApiResponse.ok("User CV created successfully", created);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('USER_CV_UPDATE') and @userSecurity.canAccessUser(#cv.userId)")
+    @PreAuthorize("hasAuthority('USER_CV_UPDATE') and @userSecurity.canAccessCv(#id)")
     public ApiResponse<UserCv> update(@PathVariable Long id, @RequestBody UserCv cv) {
         UserCv updated = service.update(id, cv)
                 .orElseThrow(() -> new RuntimeException("User CV not found or update failed"));
@@ -75,15 +74,12 @@ public class UserCvController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('USER_CV_DELETE') and @userSecurity.canAccessUser(#id)")
+    @PreAuthorize("hasAuthority('USER_CV_DELETE') and @userSecurity.canAccessCv(#id)")
     public ApiResponse<Integer> delete(@PathVariable Long id) {
         int deleted = service.delete(id);
         return ApiResponse.ok("User CV deleted successfully", deleted);
     }
 
-    /**
-     * Lấy CV mặc định của user
-     */
     @GetMapping("/default/{userId}")
     @PreAuthorize("hasAuthority('USER_CV_READ') and @userSecurity.canAccessUser(#userId)")
     public ApiResponse<UserCv> getDefaultByUserId(@PathVariable Long userId) {
@@ -92,33 +88,24 @@ public class UserCvController {
                 .orElseGet(() -> ApiResponse.error("Default CV not found"));
     }
 
-    /**
-     * Lấy CV đầy đủ (bao gồm danh sách section)
-     */
     @GetMapping("/{id}/full")
-    @PreAuthorize("hasAuthority('USER_CV_READ')")
+    @PreAuthorize("hasAuthority('USER_CV_READ') and @userSecurity.canAccessCv(#id)")
     public ApiResponse<?> getFullCv(@PathVariable Long id) {
         return service.getFullCv(id)
                 .map(full -> ApiResponse.ok("Full CV fetched successfully", full))
                 .orElseGet(() -> ApiResponse.error("CV not found"));
     }
 
-    /**
-     * Tạo 1 bản CV mới dựa trên id gốc, copy toàn bộ section sang
-     */
     @PostMapping("/{id}/clone")
-    @PreAuthorize("hasAuthority('USER_CV_CREATE')")
+    @PreAuthorize("hasAuthority('USER_CV_CREATE') and @userSecurity.canAccessCv(#id)")
     public ApiResponse<UserCv> cloneCv(@PathVariable Long id) {
         return service.cloneCv(id)
                 .map(clone -> ApiResponse.ok("CV cloned successfully", clone))
                 .orElseGet(() -> ApiResponse.error("CV not found or clone failed"));
     }
 
-    /**
-     * Cập nhật CV + section đồng thời
-     */
     @PutMapping("/{id}/full")
-    @PreAuthorize("hasAuthority('USER_CV_UPDATE')")
+    @PreAuthorize("hasAuthority('USER_CV_UPDATE') and @userSecurity.canAccessCv(#id)")
     public ApiResponse<?> updateFullCv(@PathVariable Long id, @RequestBody FullCvResponse payload) {
         boolean updated = service.updateFullCv(id, payload);
         return updated
@@ -126,4 +113,11 @@ public class UserCvController {
                 : ApiResponse.error("Update failed or CV not found");
     }
 
+    @PatchMapping("/{id}/default")
+    @PreAuthorize("hasAuthority('USER_CV_UPDATE') and @userSecurity.canAccessCv(#id)")
+    public ApiResponse<UserCv> setDefault(@PathVariable Long id) {
+        return service.setDefault(id)
+                .map(updated -> ApiResponse.ok("CV set as default successfully", updated))
+                .orElseGet(() -> ApiResponse.error("CV not found or update failed"));
+    }
 }

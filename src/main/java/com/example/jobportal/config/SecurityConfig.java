@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .securityMatcher("/api/**")
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfig = new org.springframework.web.cors.CorsConfiguration();
-                    corsConfig.setAllowedOrigins(List.of("http://localhost:5173")); // FE domain
+                    corsConfig.setAllowedOrigins(List.of("http://localhost:5173", "https://jgz76c0m-5173.asse.devtunnels.ms","http://192.168.43.77:5173")); // FE domain
                     corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                     corsConfig.setAllowedHeaders(List.of("*"));
                     corsConfig.setAllowCredentials(true);
@@ -51,7 +51,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                // 👇 Thêm đoạn xử lý lỗi JSON tại đây
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

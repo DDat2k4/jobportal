@@ -45,15 +45,23 @@ public class CustomOidcUserService extends OidcUserService {
             // Tạo profile mặc định
             userRepository.createProfile(userId, username, null);
 
-            long roleId = RoleConstant.ROLE_EMPLOYER; // fallback
-            String requestedRole = (String) userRequest.getAdditionalParameters().get("roleType");
+            // Gán role mặc định
+            long roleId = RoleConstant.ROLE_EMPLOYER; // fallback (2)
 
-            if (RoleConstant.ROLE_JOB_SEEKER == CommonUtils.toLong(requestedRole, 0L) ||
-                    RoleConstant.ROLE_EMPLOYER == CommonUtils.toLong(requestedRole, 0L)) {
-                roleId = CommonUtils.toLong(requestedRole, RoleConstant.ROLE_EMPLOYER);
+            // Lấy roleType nếu có truyền từ FE (VD: Google OAuth2 redirect có param roleType)
+            String requestedRole = (String) userRequest.getAdditionalParameters().get("roleType");
+            long parsedRole = CommonUtils.toLong(requestedRole, roleId);
+
+            // Chỉ cho phép role 2 (EMPLOYER) hoặc 3 (JOB_SEEKER)
+            if (parsedRole == RoleConstant.ROLE_EMPLOYER || parsedRole == RoleConstant.ROLE_JOB_SEEKER) {
+                roleId = parsedRole;
+            } else {
+                System.out.printf("Invalid roleType from SSO: %s -> fallback to EMPLOYER%n", requestedRole);
             }
 
+            // Gán role
             userRepository.assignRole(userId, roleId);
+
 
             return userRepository.findById(userId).orElseThrow();
         });

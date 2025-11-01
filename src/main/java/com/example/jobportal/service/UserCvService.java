@@ -106,4 +106,13 @@ public class UserCvService {
 
         return Optional.of(newCv);
     }
+
+    public Optional<UserCv> setDefault(Long id) {
+        return userCvRepo.findById(id).map(cv -> {
+            // Bỏ default cũ của user
+            userCvRepo.unsetDefaultByUserId(cv.getUserId());
+            // Đặt CV này là default
+            return userCvRepo.updateIsDefault(id, true).orElse(cv);
+        });
+    }
 }
