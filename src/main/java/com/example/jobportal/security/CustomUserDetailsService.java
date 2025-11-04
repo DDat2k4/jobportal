@@ -1,7 +1,6 @@
 package com.example.jobportal.security;
 
 import com.example.jobportal.data.entity.EmployerCompany;
-import com.example.jobportal.repository.EmployerCompanyRepository;
 import com.example.jobportal.repository.UserRepository;
 import com.example.jobportal.service.EmployerCompanyService;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +44,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 companyIds,
                 user.getUsername(),
                 user.getPasswordHash(),
-                true,
+                user.getActive() != null && user.getActive() == 1,
                 authorities
         );
     }

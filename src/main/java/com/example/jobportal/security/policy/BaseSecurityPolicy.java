@@ -19,25 +19,33 @@ public abstract class BaseSecurityPolicy {
     }
 
     /**
+     * Kiểm tra user hiện tại có đang active không
+     */
+    protected boolean isUserActive() {
+        var user = getCurrentUser();
+        return user != null && user.isActive();
+    }
+
+    /**
      * Kiểm tra user hiện tại có role cụ thể hay không
      */
     protected boolean hasRole(String role) {
-        CustomUserDetails user = getCurrentUser();
-        return user != null && user.hasRole(role);
+        var user = getCurrentUser();
+        return isUserActive() && user.hasRole(role);
     }
 
     /**
      * Kiểm tra user hiện tại có quyền ADMIN không
      */
-    protected boolean isAdmin() {
-        return hasRole("ADMIN");
+    public boolean isAdmin() {
+        return isUserActive() && hasRole("ADMIN");
     }
 
     /**
      * Lấy ID người dùng hiện tại
      */
     protected Long getCurrentUserId() {
-        CustomUserDetails user = getCurrentUser();
+        var user = getCurrentUser();
         return user != null ? user.getId() : null;
     }
 
@@ -46,6 +54,6 @@ public abstract class BaseSecurityPolicy {
      */
     protected boolean isSelf(Long userId) {
         Long currentId = getCurrentUserId();
-        return currentId != null && currentId.equals(userId);
+        return isUserActive() && currentId != null && currentId.equals(userId);
     }
 }

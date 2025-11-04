@@ -10,46 +10,49 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/user-roles")
 @RequiredArgsConstructor
 public class UserRoleController {
 
-    private final UserRoleService userRoleService;
+    private final UserRoleService service;
 
-    @GetMapping("/{userId}/roles")
-    @PreAuthorize("hasAuthority('USER_ROLE_READ')")
+    /**
+     * Lấy danh sách role của user
+     */
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER_ROLE_READ') and @userRoleSecurity.canViewOrModify(#userId)")
     public ApiResponse<List<Role>> getUserRoles(@PathVariable Long userId) {
-        List<Role> roles = userRoleService.getRolesByUserId(userId);
-        return ApiResponse.ok("Fetched user roles successfully", roles);
+        var roles = service.getRolesByUserId(userId);
+        return ApiResponse.ok("User roles fetched successfully", roles);
     }
 
-    @PostMapping("/{userId}/roles")
-    @PreAuthorize("hasAuthority('USER_ROLE_CREATE')")
-    public ApiResponse<Void> addRolesToUser(
-            @PathVariable Long userId,
-            @RequestBody List<Long> roleIds
-    ) {
-        userRoleService.addRolesToUser(userId, roleIds);
+    /**
+     * Thêm role cho user (chỉ ADMIN)
+     */
+    @PostMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER_ROLE_CREATE') and @userRoleSecurity.canManageRoles(#userId)")
+    public ApiResponse<Void> addRolesToUser(@PathVariable Long userId, @RequestBody List<Long> roleIds) {
+        service.addRolesToUser(userId, roleIds);
         return ApiResponse.ok("Roles added successfully", null);
     }
 
-    @PutMapping("/{userId}/roles")
-    @PreAuthorize("hasAuthority('USER_ROLE_UPDATE')")
-    public ApiResponse<Void> replaceUserRoles(
-            @PathVariable Long userId,
-            @RequestBody List<Long> roleIds
-    ) {
-        userRoleService.replaceUserRoles(userId, roleIds);
+    /**
+     * Thay thế toàn bộ role của user (chỉ ADMIN)
+     */
+    @PutMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER_ROLE_UPDATE') and @userRoleSecurity.canManageRoles(#userId)")
+    public ApiResponse<Void> replaceUserRoles(@PathVariable Long userId, @RequestBody List<Long> roleIds) {
+        service.replaceUserRoles(userId, roleIds);
         return ApiResponse.ok("Roles replaced successfully", null);
     }
 
-    @DeleteMapping("/{userId}/roles/{roleId}")
-    @PreAuthorize("hasAuthority('USER_ROLE_DELETE')")
-    public ApiResponse<Void> removeRoleFromUser(
-            @PathVariable Long userId,
-            @PathVariable Long roleId
-    ) {
-        userRoleService.removeRoleFromUser(userId, roleId);
+    /**
+     * Xóa một role khỏi user (chỉ ADMIN)
+     */
+    @DeleteMapping("/{userId}/{roleId}")
+    @PreAuthorize("hasAuthority('USER_ROLE_DELETE') and @userRoleSecurity.canManageRoles(#userId)")
+    public ApiResponse<Void> removeUserRole(@PathVariable Long userId, @PathVariable Long roleId) {
+        service.removeRoleFromUser(userId, roleId);
         return ApiResponse.ok("Role removed successfully", null);
     }
 }

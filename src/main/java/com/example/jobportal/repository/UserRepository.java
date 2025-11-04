@@ -1,11 +1,12 @@
 package com.example.jobportal.repository;
 
+import com.example.jobportal.data.entity.User;
+import com.example.jobportal.constant.UserStatus;
 import com.example.jobportal.data.pojo.UserDTO;
 import com.example.jobportal.extension.paging.Page;
 import com.example.jobportal.extension.paging.Pageable;
-import org.jooq.DSLContext;
+import org.jooq.*;
 import org.jooq.Record;
-import org.jooq.SelectConditionStep;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ import static com.example.generated.jooq.tables.Roles.ROLES;
 import static com.example.generated.jooq.tables.RolePermissions.ROLE_PERMISSIONS;
 import static com.example.generated.jooq.tables.Permissions.PERMISSIONS;
 import static com.example.generated.jooq.tables.UserTokens.USER_TOKENS;
+import static org.jooq.impl.DSL.noCondition;
 import static org.jooq.impl.DSL.val;
 
 @Repository
@@ -39,12 +41,50 @@ public class UserRepository {
                 USERS.FAILED_ATTEMPTS,
                 USERS.LAST_LOGIN,
                 USERS.LOCKED_UNTIL,
+                USERS.ACTIVE,
                 USER_PROFILES.NAME,
                 USER_PROFILES.AVATAR
         );
     }
 
-    // --- Find by ID
+    private Condition getWhereCondition(User filter) {
+        Condition condition = noCondition();
+
+        if (filter == null) return condition;
+
+        if (filter.getId() != null)
+            condition = condition.and(USERS.ID.eq(filter.getId()));
+
+        if (filter.getUid() != null)
+            condition = condition.and(USERS.UID.eq(filter.getUid()));
+
+        if (filter.getUsername() != null && !filter.getUsername().isBlank())
+            condition = condition.and(USERS.USERNAME.likeIgnoreCase("%" + filter.getUsername() + "%"));
+
+        if (filter.getEmail() != null && !filter.getEmail().isBlank())
+            condition = condition.and(USERS.EMAIL.likeIgnoreCase("%" + filter.getEmail() + "%"));
+
+        if (filter.getPhone() != null && !filter.getPhone().isBlank())
+            condition = condition.and(USERS.PHONE.likeIgnoreCase("%" + filter.getPhone() + "%"));
+
+        if (filter.getActive() != null)
+            condition = condition.and(USERS.ACTIVE.eq(filter.getActive()));
+
+        if (filter.getFailedAttempts() != null)
+            condition = condition.and(USERS.FAILED_ATTEMPTS.eq(filter.getFailedAttempts()));
+
+        if (filter.getCreatedAt() != null)
+            condition = condition.and(USERS.CREATED_AT.eq(filter.getCreatedAt()));
+
+        if (filter.getLastLogin() != null)
+            condition = condition.and(USERS.LAST_LOGIN.eq(filter.getLastLogin()));
+
+        if (filter.getLockedUntil() != null)
+            condition = condition.and(USERS.LOCKED_UNTIL.eq(filter.getLockedUntil()));
+
+        return condition;
+    }
+
     public Optional<UserDTO> findById(Long userId) {
         SelectConditionStep<Record> query = dsl.select(getUserFields())
                 .from(USERS)
@@ -56,7 +96,6 @@ public class UserRepository {
         return userOpt;
     }
 
-    // --- Find by username
     public Optional<UserDTO> findByUsername(String username) {
         SelectConditionStep<Record> query = dsl.select(getUserFields())
                 .from(USERS)
@@ -68,7 +107,6 @@ public class UserRepository {
         return userOpt;
     }
 
-    // --- Find by email
     public Optional<UserDTO> findByEmail(String email) {
         SelectConditionStep<Record> query = dsl.select(getUserFields())
                 .from(USERS)
@@ -80,24 +118,99 @@ public class UserRepository {
         return userOpt;
     }
 
-    // --- Insert new user
-    public Long insertUser(String username, String email, String passwordHash) {
-        return dsl.insertInto(USERS)
-                .set(USERS.UID, val(UUID.randomUUID()))
-                .set(USERS.USERNAME, val(username))
-                .set(USERS.EMAIL, val(email))
-                .set(USERS.PASSWORD_HASH, val(passwordHash))
-                .set(USERS.FAILED_ATTEMPTS, val(0))
-                .set(USERS.ACTIVE, val((short) 1))
-                .set(USERS.LAST_LOGIN, (LocalDateTime) null)
-                .set(USERS.LOCKED_UNTIL, (LocalDateTime) null)
-                .set(USERS.CREATED_AT, val(LocalDateTime.now()))
-                .returning(USERS.ID)
-                .fetchOne()
-                .getId();
+    public Page<UserDTO> findAll(UserDTO filter, Pageable pageable) {
+        int offset = pageable.getOffset();
+        int limit = pageable.getLimit();
+
+        var baseQuery = dsl.select(
+                        USERS.ID,
+                        USERS.UID,
+                        USERS.USERNAME,
+                        USERS.EMAIL,
+                        USERS.PHONE,
+                        USERS.PASSWORD_HASH,
+                        USERS.FAILED_ATTEMPTS,
+                        USERS.ACTIVE,
+                        USERS.CREATED_AT,
+                        USERS.LAST_LOGIN,
+                        USERS.LOCKED_UNTIL,
+                        USER_PROFILES.NAME,
+                        USER_PROFILES.AVATAR,
+                        ROLES.NAME.as("role_name")
+                )
+                .from(USERS)
+                .leftJoin(USER_PROFILES).on(USERS.ID.eq(USER_PROFILES.USER_ID))
+                .leftJoin(USER_ROLES).on(USERS.ID.eq(USER_ROLES.USER_ID))
+                .leftJoin(ROLES).on(USER_ROLES.ROLE_ID.eq(ROLES.ID));
+
+        Condition condition = noCondition();
+
+        if (filter != null) {
+            if (filter.getId() != null) condition = condition.and(USERS.ID.eq(filter.getId()));
+            if (filter.getUsername() != null && !filter.getUsername().isBlank())
+                condition = condition.and(USERS.USERNAME.likeIgnoreCase("%" + filter.getUsername() + "%"));
+            if (filter.getEmail() != null && !filter.getEmail().isBlank())
+                condition = condition.and(USERS.EMAIL.likeIgnoreCase("%" + filter.getEmail() + "%"));
+            if (filter.getPhone() != null && !filter.getPhone().isBlank())
+                condition = condition.and(USERS.PHONE.likeIgnoreCase("%" + filter.getPhone() + "%"));
+            if (filter.getActive() != null) condition = condition.and(USERS.ACTIVE.eq(filter.getActive()));
+            if (filter.getName() != null && !filter.getName().isBlank())
+                condition = condition.and(USER_PROFILES.NAME.likeIgnoreCase("%" + filter.getName() + "%"));
+            if (filter.getRoles() != null && !filter.getRoles().isEmpty())
+                condition = condition.and(ROLES.NAME.in(filter.getRoles()));
+        }
+
+        baseQuery.where(condition);
+
+        long total = dsl.fetchCount(baseQuery);
+        pageable.setTotal(total);
+
+        var order = pageable.getFirstOrder();
+        String sortField = order.getPropertyOrDefault("id");
+        boolean asc = order.isAsc();
+        Field<?> sort = resolveSortField(sortField);
+
+        // --- Gom các role lại
+        Map<Long, UserDTO> map = new LinkedHashMap<>();
+        baseQuery
+                .orderBy(asc ? sort.asc() : sort.desc())
+                .limit(limit)
+                .offset(offset)
+                .fetch()
+                .forEach(record -> {
+                    Long userId = record.get(USERS.ID);
+                    UserDTO dto = map.getOrDefault(userId, UserDTO.builder()
+                            .id(userId)
+                            .username(record.get(USERS.USERNAME))
+                            .email(record.get(USERS.EMAIL))
+                            .phone(record.get(USERS.PHONE))
+                            .active(record.get(USERS.ACTIVE))
+                            .name(record.get(USER_PROFILES.NAME))
+                            .avatar(record.get(USER_PROFILES.AVATAR))
+                            .roles(new HashSet<>())
+                            .build());
+
+                    String role = record.get("role_name", String.class);
+                    if (role != null && !role.isBlank()) {
+                        dto.getRoles().add(role);
+                    }
+
+                    map.put(userId, dto);
+                });
+
+        List<UserDTO> users = new ArrayList<>(map.values());
+        return new Page<>(pageable, users);
     }
 
-    // --- Update user
+    // --- Nếu muốn dùng tên cột để sort
+    private Field<?> resolveSortField(String property) {
+        if (property == null || property.isEmpty()) return USERS.ID;
+        String dbField = property.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+        Field<?> field = USERS.field(dbField);
+        return field != null ? field : USERS.ID;
+    }
+
+    // --- Cập nhật trạng thái login
     public void updateUserLastLogin(Long userId, String username) {
         dsl.update(USERS)
                 .set(USERS.USERNAME, val(username))
@@ -106,25 +219,6 @@ public class UserRepository {
                 .execute();
     }
 
-    // --- Create new user
-    public Long createUser(String username, String email, String passwordHash) {
-        // Insert vào bảng USERS
-        return dsl.insertInto(USERS)
-                .set(USERS.UID, val(UUID.randomUUID()))
-                .set(USERS.USERNAME, val(username))
-                .set(USERS.EMAIL, val(email))
-                .set(USERS.PASSWORD_HASH, val(passwordHash))
-                .set(USERS.FAILED_ATTEMPTS, val(0))
-                .set(USERS.ACTIVE, val((short)1))
-                .set(USERS.LAST_LOGIN, (LocalDateTime) null)
-                .set(USERS.LOCKED_UNTIL, (LocalDateTime) null)
-                .set(USERS.CREATED_AT, val(LocalDateTime.now()))
-                .returning(USERS.ID)
-                .fetchOne()
-                .getId();
-    }
-
-    // --- Update password
     public int updatePassword(Long userId, String passwordHash) {
         return dsl.update(USERS)
                 .set(USERS.PASSWORD_HASH, passwordHash)
@@ -132,10 +226,12 @@ public class UserRepository {
                 .execute();
     }
 
-    // --- Unlock user
+    // --- Mở khóa user
     public int unlockUser(Long userId) {
         return dsl.update(USERS)
                 .set(USERS.LOCKED_UNTIL, (LocalDateTime) null)
+                .set(USERS.ACTIVE, val(UserStatus.ACTIVE))
+                .where(USERS.ID.eq(userId))
                 .execute();
     }
 
@@ -156,7 +252,7 @@ public class UserRepository {
                 .execute();
     }
 
-    // --- Update last login
+    // --- Cập nhật login time
     public int updateLastLogin(Long userId) {
         return dsl.update(USERS)
                 .set(USERS.LAST_LOGIN, LocalDateTime.now())
@@ -183,6 +279,7 @@ public class UserRepository {
     public int lockUser(Long userId, LocalDateTime lockedUntil) {
         return dsl.update(USERS)
                 .set(USERS.LOCKED_UNTIL, lockedUntil)
+                .set(USERS.ACTIVE, val(UserStatus.LOCKED))
                 .where(USERS.ID.eq(userId))
                 .execute();
     }
@@ -205,11 +302,10 @@ public class UserRepository {
         dto.setFailedAttempts(r.get(USERS.FAILED_ATTEMPTS));
         dto.setLastLogin(r.get(USERS.LAST_LOGIN));
         dto.setLockedUntil(r.get(USERS.LOCKED_UNTIL));
-
+        dto.setActive(r.get(USERS.ACTIVE));
         return dto;
     }
 
-    // --- Populate roles, permissions, tokens
     private void populateRolesPermissionsTokens(UserDTO user) {
         Long userId = user.getId();
 
@@ -240,7 +336,7 @@ public class UserRepository {
         user.setActiveTokens(activeTokens);
     }
 
-    // Phân trang UserDTO theo role
+    // Phân trang UserDTO theo role, nhưng vẫn lấy tất cả trạng thái active
     public Page<UserDTO> findAllUsersByRole(String roleName, Pageable pageable) {
         int offset = pageable.getOffset();
         int limit = pageable.getLimit();
@@ -251,6 +347,7 @@ public class UserRepository {
                         USERS.USERNAME,
                         USERS.EMAIL,
                         USERS.PHONE,
+                        USERS.ACTIVE,
                         USER_PROFILES.NAME,
                         USER_PROFILES.AVATAR,
                         ROLES.NAME.as("role_name")
@@ -258,11 +355,11 @@ public class UserRepository {
                 .from(USERS)
                 .leftJoin(USER_PROFILES).on(USERS.ID.eq(USER_PROFILES.USER_ID))
                 .leftJoin(USER_ROLES).on(USERS.ID.eq(USER_ROLES.USER_ID))
-                .leftJoin(ROLES).on(USER_ROLES.ROLE_ID.eq(ROLES.ID))
-                .where(USERS.ACTIVE.eq((short) 1));
+                .leftJoin(ROLES).on(USER_ROLES.ROLE_ID.eq(ROLES.ID));
 
+        // Nếu truyền roleName, chỉ lấy user có role đó
         if (roleName != null && !roleName.isBlank()) {
-            baseQuery = baseQuery.and(ROLES.NAME.eq(roleName));
+            baseQuery = (SelectOnConditionStep<org.jooq.Record8<Long, String, String, String, Short, String, String, String>>) baseQuery.where(ROLES.NAME.eq(roleName));
         }
 
         // Tổng số bản ghi
@@ -283,6 +380,7 @@ public class UserRepository {
                         .username(record.get(USERS.USERNAME))
                         .email(record.get(USERS.EMAIL))
                         .phone(record.get(USERS.PHONE))
+                        .active(record.get(USERS.ACTIVE)) // giữ trường active
                         .name(record.get(USER_PROFILES.NAME))
                         .avatar(record.get(USER_PROFILES.AVATAR))
                         .roles(Set.of(Optional.ofNullable(record.get("role_name", String.class)).orElse("")))
@@ -293,4 +391,54 @@ public class UserRepository {
         return new Page<>(pageable, users);
     }
 
+    public Long create(String username, String email, String passwordHash) {
+        return dsl.insertInto(USERS)
+                .set(USERS.UID, val(UUID.randomUUID()))
+                .set(USERS.USERNAME, val(username))
+                .set(USERS.EMAIL, val(email))
+                .set(USERS.PASSWORD_HASH, val(passwordHash))
+                .set(USERS.FAILED_ATTEMPTS, val(0))
+                .set(USERS.ACTIVE, val(UserStatus.ACTIVE))
+                .set(USERS.LAST_LOGIN, (LocalDateTime) null)
+                .set(USERS.LOCKED_UNTIL, (LocalDateTime) null)
+                .set(USERS.CREATED_AT, val(LocalDateTime.now()))
+                .returning(USERS.ID)
+                .fetchOne()
+                .getId();
+    }
+
+    public int update(Long id, String email, String passwordHash, short status) {
+        return dsl.update(USERS)
+                .set(USERS.EMAIL, val(email))
+                .set(USERS.PASSWORD_HASH, val(passwordHash))
+                .set(USERS.ACTIVE, val(status))
+                .where(USERS.ID.eq(id))
+                .execute();
+    }
+
+    public int delete(Long userId) {
+        dsl.deleteFrom(USER_TOKENS).where(USER_TOKENS.USER_ID.eq(userId)).execute();
+        dsl.deleteFrom(USER_ROLES).where(USER_ROLES.USER_ID.eq(userId)).execute();
+        dsl.deleteFrom(USER_PROFILES).where(USER_PROFILES.USER_ID.eq(userId)).execute();
+
+        return dsl.deleteFrom(USERS)
+                .where(USERS.ID.eq(userId))
+                .execute();
+    }
+
+    // --- Deactivate user (INACTIVE)
+    public int deactivateUser(Long userId) {
+        return dsl.update(USERS)
+                .set(USERS.ACTIVE, val(UserStatus.INACTIVE))
+                .where(USERS.ID.eq(userId))
+                .execute();
+    }
+
+    // --- Lấy tất cả user
+    public List<UserDTO> findAll() {
+        return dsl.select(getUserFields())
+                .from(USERS)
+                .leftJoin(USER_PROFILES).on(USERS.ID.eq(USER_PROFILES.USER_ID))
+                .fetch(this::mapToDTO);
+    }
 }

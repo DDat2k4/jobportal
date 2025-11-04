@@ -27,7 +27,7 @@ public class CompanyController {
     private final CompanyInfoService companyInfoService;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('COMPANY_READ') and @companySecurity.canAccessCompany(#id)")
+    @PreAuthorize("hasAuthority('COMPANY_READ')")
     public ApiResponse<Company> getById(@PathVariable Long id) {
         Optional<Company> company = companyService.getById(id);
         return company.map(c -> ApiResponse.ok("Company fetched successfully", c))
@@ -96,7 +96,7 @@ public class CompanyController {
     }
 
     @GetMapping("/{id}/full")
-    @PreAuthorize("hasAuthority('COMPANY_READ') and @companySecurity.canAccessCompany(#id)")
+    @PreAuthorize("hasAuthority('COMPANY_READ')")
     public ApiResponse<CompanyFullDTO> getFullCompanyInfo(@PathVariable Long id) {
         return companyInfoService.getFullCompanyInfo(id)
                 .map(dto -> ApiResponse.ok("Full company info fetched successfully", dto))

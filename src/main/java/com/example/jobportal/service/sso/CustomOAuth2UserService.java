@@ -44,7 +44,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         UserDTO user = optUser.orElseGet(() -> {
             String randomPassword = UUID.randomUUID().toString();
-            userRepository.createUser(tmpUsername, email, passwordEncoder.encode(randomPassword));
+            userRepository.create(tmpUsername, email, passwordEncoder.encode(randomPassword));
             return userRepository.findByUsername(tmpUsername)
                     .orElseThrow(() -> new RuntimeException("Failed to create local user"));
         });

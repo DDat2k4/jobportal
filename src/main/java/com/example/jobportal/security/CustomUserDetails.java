@@ -1,5 +1,6 @@
 package com.example.jobportal.security;
 
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -7,6 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+@Getter
 public class CustomUserDetails implements UserDetails {
 
     private final Long id;
@@ -16,28 +18,14 @@ public class CustomUserDetails implements UserDetails {
     private final boolean active;
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public CustomUserDetails(
-            Long id,
-            List<Long> companyIds,
-            String username,
-            String password,
-            boolean active,
-            Collection<? extends GrantedAuthority> authorities
-    ) {
+    public CustomUserDetails(Long id, List<Long> companyIds, String username, String password,
+                             boolean active, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
-        this.companyIds = companyIds;
+        this.companyIds = companyIds != null ? companyIds : Collections.emptyList();
         this.username = username;
         this.password = password;
         this.active = active;
         this.authorities = authorities;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public List<Long> getCompanyIds() {
-        return companyIds != null ? companyIds : Collections.emptyList();
     }
 
     public boolean hasRole(String roleName) {
@@ -47,38 +35,19 @@ public class CustomUserDetails implements UserDetails {
                 .anyMatch(a -> a.getAuthority().equalsIgnoreCase(normalized));
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
+    public boolean isAdmin() {
+        return hasRole("ADMIN");
     }
 
     @Override
-    public String getPassword() {
-        return password;
-    }
+    public boolean isAccountNonExpired() { return active; }
 
     @Override
-    public String getUsername() {
-        return username;
-    }
+    public boolean isAccountNonLocked() { return active; }
 
     @Override
-    public boolean isAccountNonExpired() {
-        return active;
-    }
+    public boolean isCredentialsNonExpired() { return active; }
 
     @Override
-    public boolean isAccountNonLocked() {
-        return active;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return active;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return active;
-    }
+    public boolean isEnabled() { return active; }
 }

@@ -52,6 +52,6 @@ public class Pageable {
     }
 
     public Order getFirstOrder() {
-        return sort.isEmpty() ? new Order("id", Order.Direction.ASC) : sort.get(0);
+        return sort.isEmpty() ? new Order("id", Order.Direction.ASC) : sort.getFirst();
     }
 }

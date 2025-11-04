@@ -62,7 +62,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 .orElseGet(() -> {
                     String finalUsername = (username != null) ? username : email.split("@")[0];
                     // Tạo user mới
-                    Long id = userRepository.insertUser(finalUsername, email, ""); // password rỗng
+                    Long id = userRepository.create(finalUsername, email, ""); // password rỗng
                     // Tạo profile
                     userProfileRepository.insert(id, finalUsername, avatar);
                     return id;

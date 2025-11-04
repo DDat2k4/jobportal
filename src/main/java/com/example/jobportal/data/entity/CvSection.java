@@ -11,9 +11,9 @@ import java.util.Map;
 public class CvSection {
     private Long id;
     private Long cvId;
-    private String type;           // Loại block (EDUCATION, EXPERIENCE,...)
-    private String title;          // Tiêu đề hiển thị
+    private String type;                     // Loại block (EDUCATION, EXPERIENCE,...)
+    private String title;                    // Tiêu đề hiển thị
     private Map<String, Object> content;     // Nội dung JSON động
-    private Integer position;      // Thứ tự hiển thị
+    private Integer position;                // Thứ tự hiển thị
     private LocalDateTime createdAt;
 }

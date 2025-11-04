@@ -54,7 +54,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             String defaultUsername = username != null ? username : email.split("@")[0];
             String randomPasswordHash = UUID.randomUUID().toString(); // chỉ để lưu hash
 
-            Long userId = userRepository.createUser(defaultUsername, email, randomPasswordHash);
+            Long userId = userRepository.create(defaultUsername, email, randomPasswordHash);
 
             // Nếu cần tạo profile và role mặc định
             userRepository.createProfile(userId, defaultUsername, avatar);

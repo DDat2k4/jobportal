@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 public class CvTemplate {
     private Long id;
-    private String code;           // Mã template (VD: SIMPLE_WHITE)
+    private String code;           // Mã template
     private String name;           // Tên hiển thị
     private String previewUrl;     // Link ảnh xem trước
     private JSONB config;          // Cấu hình (font, layout,...)

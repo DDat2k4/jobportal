@@ -40,7 +40,7 @@ public class CustomOidcUserService extends OidcUserService {
         // --- Tìm hoặc tạo user
         UserDTO userDto = userRepository.findByEmail(email).orElseGet(() -> {
             String randomPasswordHash = passwordEncoder.encode(UUID.randomUUID().toString());
-            Long userId = userRepository.createUser(username, email, randomPasswordHash);
+            Long userId = userRepository.create(username, email, randomPasswordHash);
 
             // Tạo profile mặc định
             userRepository.createProfile(userId, username, null);
