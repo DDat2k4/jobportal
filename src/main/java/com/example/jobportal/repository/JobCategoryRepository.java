@@ -97,8 +97,6 @@ public class JobCategoryRepository {
         Order order = pageable.getFirstOrder();
         String sortField = order != null ? order.getPropertyOrDefault("id") : "id";
         boolean asc = order == null || order.isAsc();
-
-        // Tạo sortField động
         SortField<?> sort = asc
                 ? JOB_CATEGORIES.field(sortField).asc()
                 : JOB_CATEGORIES.field(sortField).desc();

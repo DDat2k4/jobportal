@@ -24,9 +24,7 @@ public class JwtService {
         this.secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
     }
 
-    // ---------------- GENERATION ----------------
-
-    // Tạo Access Token (có cả userId)
+    // Tạo Access Token
     public String generateToken(Long userId, String username, Set<String> roles, Set<String> permissions) {
         return Jwts.builder()
                 .setSubject(username)
@@ -50,8 +48,6 @@ public class JwtService {
                 .compact();
     }
 
-    // ---------------- EXTRACTION ----------------
-
     public String extractUsername(String token) {
         return parseClaims(token).getSubject();
     }
@@ -69,8 +65,6 @@ public class JwtService {
         return (Set<String>) parseClaims(token).get("permissions");
     }
 
-    // ---------------- VALIDATION ----------------
-
     public boolean validateToken(String token, String username) {
         try {
             Claims claims = parseClaims(token);
@@ -84,8 +78,6 @@ public class JwtService {
     private boolean isTokenExpired(Claims claims) {
         return claims.getExpiration().before(new Date());
     }
-
-    // ---------------- INTERNAL ----------------
 
     public Claims parseClaims(String token) {
         return Jwts.parserBuilder()
