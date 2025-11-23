@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.example.generated.jooq.tables.Applications.APPLICATIONS;
+import static com.example.generated.jooq.tables.Jobs.JOBS;
 import static org.jooq.impl.DSL.noCondition;
 
 @Repository
@@ -39,7 +40,7 @@ public class ApplicationRepository {
         );
     }
 
-    public Condition getWhereCondition(Application filter) {
+    public Condition getWhereCondition(Application filter, List<Long> companyIds) {
         Condition condition = noCondition();
 
         if (filter.getId() != null) {
@@ -55,6 +56,16 @@ public class ApplicationRepository {
             condition = condition.and(APPLICATIONS.STATUS.eq(filter.getStatus()));
         }
 
+        if (companyIds != null && !companyIds.isEmpty()) {
+            // Join với bảng job để filter company
+            condition = condition.and(APPLICATIONS.JOB_ID.in(
+                    dsl.select(JOBS.ID)
+                            .from(JOBS)
+                            .where(JOBS.COMPANY_ID.in(companyIds))
+            ));
+        }
+
+
         return condition;
     }
 
@@ -62,13 +73,6 @@ public class ApplicationRepository {
         return dsl.select(getFields())
                 .from(APPLICATIONS)
                 .where(APPLICATIONS.ID.eq(id))
-                .fetchOptionalInto(Application.class);
-    }
-
-    public Optional<Application> findByFilter(Application filter) {
-        return dsl.select(getFields())
-                .from(APPLICATIONS)
-                .where(getWhereCondition(filter))
                 .fetchOptionalInto(Application.class);
     }
 
@@ -102,10 +106,10 @@ public class ApplicationRepository {
                 .execute();
     }
 
-    public Page<Application> findAll(Application filter, Pageable pageable) {
+    public Page<Application> findAll(Application filter, List<Long> companyIds, Pageable pageable) {
         int offset = pageable.getOffset();
         int limit = pageable.getLimit();
-        long total = count(filter);
+        long total = count(filter, companyIds);
         pageable.setTotal(total);
 
         Order order = pageable.getFirstOrder();
@@ -114,7 +118,7 @@ public class ApplicationRepository {
 
         List<Application> items = dsl.select(getFields())
                 .from(APPLICATIONS)
-                .where(getWhereCondition(filter))
+                .where(getWhereCondition(filter, companyIds))
                 .orderBy(isAsc ? APPLICATIONS.field(sortField).asc() : APPLICATIONS.field(sortField).desc())
                 .limit(limit)
                 .offset(offset)
@@ -123,10 +127,10 @@ public class ApplicationRepository {
         return new Page<>(pageable, items);
     }
 
-    public long count(Application filter) {
+    public long count(Application filter, List<Long> companyIds) {
         return dsl.selectCount()
                 .from(APPLICATIONS)
-                .where(getWhereCondition(filter))
+                .where(getWhereCondition(filter, companyIds))
                 .fetchOne(0, long.class);
     }
 }

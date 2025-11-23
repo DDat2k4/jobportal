@@ -36,4 +36,24 @@ public class NotificationService {
     public Page<Notification> getAll(Notification filter, Pageable pageable) {
         return repo.findAll(filter, pageable);
     }
+
+    public Notification markAsRead(Long id, Long userId) {
+        Notification notif = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+
+        if (!notif.getUserId().equals(userId)) {
+            throw new RuntimeException("Cannot mark other user's notification as read");
+        }
+
+        return repo.markAsRead(id)
+                .orElseThrow(() -> new RuntimeException("Failed to mark notification as read"));
+    }
+
+    public void markAllAsRead(Long userId) {
+        repo.markAllAsRead(userId);
+    }
+
+    public long countUnread(Long userId) {
+        return repo.countUnread(userId);
+    }
 }

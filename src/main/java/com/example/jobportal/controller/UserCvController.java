@@ -21,7 +21,7 @@ public class UserCvController {
     private final UserCvService service;
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('USER_CV_READ') and @userSecurity.canAccessCv(#id)")
+    @PreAuthorize("hasAuthority('USER_CV_READ')")
     public ApiResponse<UserCv> getById(@PathVariable Long id) {
         Optional<UserCv> cv = service.getById(id);
         return cv.map(c -> ApiResponse.ok("User CV fetched successfully", c))
@@ -89,7 +89,7 @@ public class UserCvController {
     }
 
     @GetMapping("/{id}/full")
-    @PreAuthorize("hasAuthority('USER_CV_READ') and @userSecurity.canAccessCv(#id)")
+    @PreAuthorize("hasAuthority('USER_CV_READ')")
     public ApiResponse<?> getFullCv(@PathVariable Long id) {
         return service.getFullCv(id)
                 .map(full -> ApiResponse.ok("Full CV fetched successfully", full))

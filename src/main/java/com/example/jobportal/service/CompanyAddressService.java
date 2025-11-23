@@ -4,7 +4,6 @@ import com.example.jobportal.data.entity.CompanyAddress;
 import com.example.jobportal.extension.paging.Page;
 import com.example.jobportal.extension.paging.Pageable;
 import com.example.jobportal.repository.CompanyAddressRepository;
-import org.jooq.Record;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;

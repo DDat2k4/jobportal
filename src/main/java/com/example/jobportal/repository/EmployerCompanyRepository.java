@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import static com.example.generated.jooq.tables.Companies.COMPANIES;
 import static com.example.generated.jooq.tables.EmployerCompanies.EMPLOYER_COMPANIES;
+import static com.example.generated.jooq.tables.Jobs.JOBS;
 import static com.example.generated.jooq.tables.Users.USERS;
 
 @Repository
@@ -114,5 +115,14 @@ public class EmployerCompanyRepository {
                         .where(EMPLOYER_COMPANIES.EMPLOYER_ID.eq(employerId))
                         .and(EMPLOYER_COMPANIES.COMPANY_ID.eq(companyId))
         );
+    }
+
+    public List<Long> findEmployerIdsByJobId(Long jobId) {
+        return dsl.select(EMPLOYER_COMPANIES.EMPLOYER_ID)
+                .from(EMPLOYER_COMPANIES)
+                .join(COMPANIES).on(COMPANIES.ID.eq(EMPLOYER_COMPANIES.COMPANY_ID))
+                .join(JOBS).on(JOBS.COMPANY_ID.eq(COMPANIES.ID))
+                .where(JOBS.ID.eq(jobId))
+                .fetch(EMPLOYER_COMPANIES.EMPLOYER_ID);
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.example.generated.jooq.tables.Notifications.NOTIFICATIONS;
@@ -91,6 +92,13 @@ public class NotificationRepository {
                 .execute();
     }
 
+    private static final Map<String, Field<?>> SORTABLE_FIELDS = Map.of(
+            "id", NOTIFICATIONS.ID,
+            "createdAt", NOTIFICATIONS.CREATED_AT,
+            "isRead", NOTIFICATIONS.IS_READ,
+            "userId", NOTIFICATIONS.USER_ID
+    );
+
     public Page<Notification> findAll(Notification filter, Pageable pageable) {
         int offset = pageable.getOffset();
         int limit = pageable.getLimit();
@@ -98,15 +106,15 @@ public class NotificationRepository {
         pageable.setTotal(total);
 
         Order order = pageable.getFirstOrder();
-        String sortField = order.getPropertyOrDefault("ID");
+        String sortField = order.getPropertyOrDefault("id");
         boolean isAsc = order.isAsc();
+
+        Field<?> sortColumn = SORTABLE_FIELDS.getOrDefault(sortField, NOTIFICATIONS.ID);
 
         List<Notification> items = dsl.select(getFields())
                 .from(NOTIFICATIONS)
                 .where(getWhereCondition(filter))
-                .orderBy(isAsc
-                        ? NOTIFICATIONS.field(sortField).asc()
-                        : NOTIFICATIONS.field(sortField).desc())
+                .orderBy(isAsc ? sortColumn.asc() : sortColumn.desc())
                 .limit(limit)
                 .offset(offset)
                 .fetchInto(Notification.class);
@@ -118,6 +126,30 @@ public class NotificationRepository {
         return dsl.selectCount()
                 .from(NOTIFICATIONS)
                 .where(getWhereCondition(filter))
+                .fetchOne(0, long.class);
+    }
+
+    public Optional<Notification> markAsRead(Long id) {
+        return dsl.update(NOTIFICATIONS)
+                .set(NOTIFICATIONS.IS_READ, true)
+                .where(NOTIFICATIONS.ID.eq(id))
+                .returning()
+                .fetchOptionalInto(Notification.class);
+    }
+
+    // Đánh dấu tất cả của user là đã đọc
+    public int markAllAsRead(Long userId) {
+        return dsl.update(NOTIFICATIONS)
+                .set(NOTIFICATIONS.IS_READ, true)
+                .where(NOTIFICATIONS.USER_ID.eq(userId).and(NOTIFICATIONS.IS_READ.eq(false)))
+                .execute();
+    }
+
+    // Đếm số notification chưa đọc
+    public long countUnread(Long userId) {
+        return dsl.selectCount()
+                .from(NOTIFICATIONS)
+                .where(NOTIFICATIONS.USER_ID.eq(userId).and(NOTIFICATIONS.IS_READ.eq(false)))
                 .fetchOne(0, long.class);
     }
 }

@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
 
@@ -38,8 +39,8 @@ public class SecurityConfig {
         http
                 .securityMatcher("/api/**")
                 .cors(cors -> cors.configurationSource(request -> {
-                    var corsConfig = new org.springframework.web.cors.CorsConfiguration();
-                    corsConfig.setAllowedOrigins(List.of("http://localhost:5173", "https://jgz76c0m-5173.asse.devtunnels.ms","http://192.168.43.77:5173")); // FE domain
+                    var corsConfig = new CorsConfiguration();
+                    corsConfig.setAllowedOrigins(List.of("http://localhost:5173", "https://jgz76c0m-5173.asse.devtunnels.ms","http://10.144.174.119:5173")); // FE domain
                     corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                     corsConfig.setAllowedHeaders(List.of("*"));
                     corsConfig.setAllowCredentials(true);

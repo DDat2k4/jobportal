@@ -76,7 +76,7 @@ public class UserProfileController {
      * Tạo mới hồ sơ người dùng
      */
     @PostMapping
-    @PreAuthorize("hasAuthority('USER_PROFILE_CREATE')")
+    @PreAuthorize("hasAuthority('USER_PROFILE_CREATE') and @userProfileSecurity.canCreate(#profile)")
     public ApiResponse<UserProfile> create(@RequestBody UserProfile profile) {
         UserProfile created = service.create(profile);
         return ApiResponse.ok("User profile created successfully", created);

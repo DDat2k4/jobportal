@@ -1,5 +1,6 @@
 package com.example.jobportal.security.policy;
 
+import com.example.jobportal.data.entity.UserProfile;
 import com.example.jobportal.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -35,4 +36,15 @@ public class UserProfileSecurity extends BaseSecurityPolicy {
         if (isAdmin()) return true;
         return isSelf(userId);
     }
+
+    public boolean canCreate(UserProfile profile) {
+        var user = getCurrentUser();
+        if (user == null) return false;
+
+        if (isAdmin()) return true;
+
+        // User thường chỉ tạo profile cho chính mình
+        return profile.getUserId() != null && isSelf(profile.getUserId());
+    }
+
 }

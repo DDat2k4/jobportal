@@ -6,11 +6,15 @@ import com.example.jobportal.data.response.ApiResponse;
 import com.example.jobportal.extension.paging.Order;
 import com.example.jobportal.extension.paging.Page;
 import com.example.jobportal.extension.paging.Pageable;
+import com.example.jobportal.security.CustomUserDetails;
 import com.example.jobportal.service.ApplicationService;
+import com.example.jobportal.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -46,8 +50,7 @@ public class ApplicationController {
             @RequestParam(required = false) String sortBy,
             @RequestParam(required = false) Boolean asc
     ) {
-        Pageable pageable = new Pageable(page, size);
-
+        Pageable pageable= new Pageable(page, size);
         if (sortBy != null && !sortBy.isBlank()) {
             pageable.addOrder(sortBy, asc != null && asc ? Order.Direction.ASC : Order.Direction.DESC);
         } else {
@@ -59,7 +62,11 @@ public class ApplicationController {
                 .setJobId(jobId)
                 .setStatus(status);
 
-        Page<Application> result = service.getAll(filter, pageable);
+        List<Long> companyIds = SecurityUtils.hasRole("EMPLOYER") ?
+                ((CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+                        .getCompanyIds() : null;
+
+        Page<Application> result = service.getAll(filter, pageable, companyIds);
         return ApiResponse.ok("Applications fetched successfully", result);
     }
 
@@ -98,7 +105,7 @@ public class ApplicationController {
      * Cập nhật trạng thái (EMPLOYER hoặc ADMIN mới được phép)
      */
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAuthority('APPLICATION_UPDATE_STATUS') and @applicationSecurity.canViewOrModify(#id)")
+    @PreAuthorize("hasAuthority('APPLICATION_UPDATE_STATUS') and @applicationSecurity.canUpdateStatus(#id, #request.newStatus)")
     public ApiResponse<Application> updateStatus(
             @PathVariable Long id,
             @RequestBody StatusUpdateRequest request

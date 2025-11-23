@@ -17,7 +17,7 @@ public class ApplicationSecurity extends BaseSecurityPolicy {
 
         return jobRepository.findApplicationWithJobCompany(applicationId)
                 .map(app -> {
-                    if (user.hasRole("SEEKER") && app.getSeekerId().equals(user.getId()))
+                    if (user.hasRole("JOB_SEEKER") && app.getSeekerId().equals(user.getId()))
                         return true;
                     if (user.hasRole("EMPLOYER") &&
                             user.getCompanyIds().contains(app.getCompanyId()))
@@ -26,4 +26,28 @@ public class ApplicationSecurity extends BaseSecurityPolicy {
                 })
                 .orElse(false);
     }
+
+    public boolean canUpdateStatus(Long applicationId, String newStatus) {
+        var user = getCurrentUser();
+        if (user == null) return false;
+
+        // Admin full quyền
+        if (isAdmin()) return true;
+
+        return jobRepository.findApplicationWithJobCompany(applicationId)
+                .map(app -> {
+                    // Nếu là SEEKER: chỉ được đổi sang "CANCELED"
+                    if (user.hasRole("JOB_SEEKER")) {
+                        return app.getSeekerId().equals(user.getId()) &&
+                                "CANCELED".equalsIgnoreCase(newStatus);
+                    }
+                    // Nếu là EMPLOYER: được đổi status theo TRANSITIONS
+                    if (user.hasRole("EMPLOYER")) {
+                        return user.getCompanyIds().contains(app.getCompanyId());
+                    }
+                    return false;
+                })
+                .orElse(false);
+    }
+
 }
