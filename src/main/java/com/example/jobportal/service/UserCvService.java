@@ -115,4 +115,9 @@ public class UserCvService {
             return userCvRepo.updateIsDefault(id, true).orElse(cv);
         });
     }
+
+    /** Lấy tất cả CV mặc định của user (dùng cho match nhiều user) */
+    public List<UserCv> getAllDefaultCvs() {
+        return userCvRepo.findAllDefault(); // giả sử repo có phương thức này
+    }
 }

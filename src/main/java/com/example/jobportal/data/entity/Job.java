@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -38,6 +39,16 @@ public class Job {
     private Short status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    /**
+     * Yêu cầu học vấn tối thiểu:
+     * "NONE", "HIGH_SCHOOL", "COLLEGE", "BACHELOR", "MASTER", "PHD"
+     */
+    private String requiredEducation;
+
+    /**
+     * Số năm kinh nghiệm tối thiểu (0 = accept fresher)
+     */
+    private Integer requiredExperienceYears;
+
+    private List<JobSkill> skills;
 }
-
-

@@ -1,12 +1,14 @@
 package com.example.jobportal.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.jobportal.data.pojo.MyPair;
 import io.micrometer.common.util.StringUtils;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.ArrayUtils;
+import org.jooq.JSONB;
 import org.json.JSONObject;
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -26,6 +28,7 @@ import java.util.regex.Pattern;
 
 public class CommonUtils {
     private final ObjectMapper objectMapper;
+    private static final ObjectMapper mapper = new ObjectMapper();
     public static final char CHAR_SEVEN = '7';
     private static final char[] SOURCE_CHARACTERS = {'À', 'Á', 'Â', 'Ã', 'È', 'É',
             'Ê', 'Ì', 'Í', 'Ò', 'Ó', 'Ô', 'Õ', 'Ù', 'Ú', 'à', 'á', 'â',
@@ -802,5 +805,33 @@ public class CommonUtils {
      */
     public static String toString(Object obj) {
         return obj == null ? "" : obj.toString();
+    }
+
+    /**
+     *  Chuyển List<String> thành JSONB
+     */
+    public static JSONB toJsonb(List<String> list) {
+        if (list == null) return null;
+        try {
+            return JSONB.valueOf(mapper.writeValueAsString(list));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to convert List<String> to JSONB", e);
+        }
+    }
+
+    /**
+     *  Chuyển JSONB thành List<String>
+     */
+    public static List<String> jsonbToList(JSONB jsonb) {
+        if (jsonb == null) return null;
+        try {
+            return mapper.readValue(jsonb.data(), new TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to convert JSONB to List<String>", e);
+        }
+    }
+
+    public static String normalize(String text) {
+        return text == null ? null : text.trim().toLowerCase();
     }
 }

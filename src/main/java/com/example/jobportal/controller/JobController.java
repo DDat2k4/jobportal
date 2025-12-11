@@ -1,6 +1,7 @@
 package com.example.jobportal.controller;
 
 import com.example.jobportal.data.entity.Job;
+import com.example.jobportal.data.entity.JobSkill;
 import com.example.jobportal.data.response.ApiResponse;
 import com.example.jobportal.extension.paging.Order;
 import com.example.jobportal.extension.paging.Page;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -19,6 +21,7 @@ public class JobController {
 
     private final JobService jobService;
 
+    // Lấy Job theo ID kèm danh sách JobSkill
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('JOB_READ')")
     public ApiResponse<Job> getById(@PathVariable Long id) {
@@ -27,6 +30,7 @@ public class JobController {
                 .orElseGet(() -> ApiResponse.error("Job not found"));
     }
 
+    // Lấy danh sách Job kèm JobSkill
     @GetMapping
     @PreAuthorize("hasAuthority('JOB_READ')")
     public ApiResponse<Page<Job>> getAll(
@@ -55,27 +59,27 @@ public class JobController {
         return ApiResponse.ok("Jobs fetched successfully", jobService.getAll(filter, pageable));
     }
 
+    // Tạo Job kèm danh sách JobSkill
     @PostMapping
     @PreAuthorize("hasAuthority('JOB_CREATE') and @jobSecurity.canAccessCompany(#job.companyId)")
     public ApiResponse<Job> create(@RequestBody Job job) {
-        Job created = jobService.create(job);
+        List<JobSkill> skills = job.getSkills(); // lấy skills từ request
+        Job created = jobService.create(job, skills);
         return ApiResponse.ok("Job created successfully", created);
     }
 
+    // Cập nhật Job kèm danh sách JobSkill
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('JOB_UPDATE') and @jobSecurity.isOwner(#id)")
     public ApiResponse<Job> update(@PathVariable Long id, @RequestBody Job job) {
-        Optional<Job> existing = jobService.getById(id);
-        if (existing.isEmpty()) {
-            return ApiResponse.error("Job not found");
-        }
-
         job.setId(id);
-        Job updated = jobService.update(job)
+        List<JobSkill> skills = job.getSkills();
+        Job updated = jobService.update(job, skills)
                 .orElseThrow(() -> new RuntimeException("Job update failed"));
         return ApiResponse.ok("Job updated successfully", updated);
     }
 
+    // Xóa Job (JobSkill sẽ được cascade xóa trong service)
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('JOB_DELETE') and @jobSecurity.isOwner(#id)")
     public ApiResponse<Integer> delete(@PathVariable Long id) {
@@ -88,6 +92,7 @@ public class JobController {
         return ApiResponse.ok("Job deleted successfully", deleted);
     }
 
+    // Đếm số lượng job theo category
     @GetMapping("/count-by-category")
     @PreAuthorize("hasAuthority('JOB_READ')")
     public ApiResponse<?> countJobsByCategory(

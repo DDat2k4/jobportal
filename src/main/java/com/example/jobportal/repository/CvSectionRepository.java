@@ -175,4 +175,14 @@ public class CvSectionRepository {
                 .where(CV_SECTIONS.CV_ID.eq(cvId))
                 .execute();
     }
+
+    public List<CvSection> findByCvIdAndType(Long cvId, String type) {
+        return dsl.selectFrom(CV_SECTIONS)
+                .where(
+                        CV_SECTIONS.CV_ID.eq(cvId)
+                                .and(CV_SECTIONS.TYPE.eq(type))
+                )
+                .orderBy(CV_SECTIONS.POSITION.asc())
+                .fetch(this::mapRecordToEntity);
+    }
 }

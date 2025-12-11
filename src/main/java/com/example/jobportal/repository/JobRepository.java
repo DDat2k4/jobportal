@@ -33,7 +33,9 @@ public class JobRepository {
                 JOBS.ID, JOBS.COMPANY_ID, JOBS.TITLE, JOBS.DESCRIPTION,
                 JOBS.REQUIREMENTS, JOBS.SALARY_RANGE, JOBS.LOCATION,
                 JOBS.CATEGORY_ID, JOBS.TYPE, JOBS.DEADLINE,
-                JOBS.STATUS, JOBS.CREATED_AT, JOBS.UPDATED_AT
+                JOBS.STATUS, JOBS.CREATED_AT, JOBS.UPDATED_AT,
+                JOBS.REQUIRED_EDUCATION,
+                JOBS.REQUIRED_EXPERIENCE_YEARS
         );
     }
 
@@ -91,6 +93,8 @@ public class JobRepository {
                 .set(JOBS.TYPE, job.getType())
                 .set(JOBS.DEADLINE, job.getDeadline())
                 .set(JOBS.STATUS, job.getStatus() != null ? job.getStatus() : (short) 1)
+                .set(JOBS.REQUIRED_EDUCATION, job.getRequiredEducation())
+                .set(JOBS.REQUIRED_EXPERIENCE_YEARS, job.getRequiredExperienceYears())
                 .set(JOBS.CREATED_AT, LocalDateTime.now())
                 .set(JOBS.UPDATED_AT, LocalDateTime.now())
                 .returning()
@@ -107,6 +111,8 @@ public class JobRepository {
                 .set(JOBS.CATEGORY_ID, job.getCategoryId())
                 .set(JOBS.TYPE, job.getType())
                 .set(JOBS.STATUS, job.getStatus())
+                .set(JOBS.REQUIRED_EDUCATION, job.getRequiredEducation())
+                .set(JOBS.REQUIRED_EXPERIENCE_YEARS, job.getRequiredExperienceYears())
                 .set(JOBS.UPDATED_AT, LocalDateTime.now())
                 .where(JOBS.ID.eq(job.getId()))
                 .returning()
@@ -123,6 +129,7 @@ public class JobRepository {
         pageable = pageable != null ? pageable : new Pageable();
         int offset = pageable.getOffset();
         int limit = pageable.getLimit();
+
         Order order = pageable.getFirstOrder();
         String sortField = order.getPropertyOrDefault("id");
         boolean isAsc = order.isAsc();
@@ -132,6 +139,7 @@ public class JobRepository {
 
         long total = count(filter);
         pageable.setTotal(total);
+
         List<Job> items = dsl.select(getFields())
                 .from(JOBS)
                 .where(getWhereCondition(filter))
@@ -163,9 +171,6 @@ public class JobRepository {
                 .fetchInto(CategoryJobCount.class);
     }
 
-    /**
-     * Lấy thông tin cơ bản của application kèm companyId của job tương ứng
-     */
     public Optional<ApplicationWithCompany> findApplicationWithJobCompany(Long applicationId) {
         return dsl.select(
                         APPLICATIONS.ID.as("id"),

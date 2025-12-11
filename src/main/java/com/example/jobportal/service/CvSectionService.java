@@ -6,7 +6,9 @@ import com.example.jobportal.extension.paging.Pageable;
 import com.example.jobportal.repository.CvSectionRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -57,5 +59,45 @@ public class CvSectionService {
      */
     public Optional<CvSection> getByFilter(CvSection filter) {
         return repo.findByFilter(filter);
+    }
+
+    public List<String> getSkills(Long cvId) {
+        List<CvSection> sections = repo.findByCvIdAndType(cvId, "SKILL");
+        List<String> result = new ArrayList<>();
+
+        for (CvSection sec : sections) {
+            Map<String, Object> content = sec.getContent();
+            List<Map<String, Object>> items = (List<Map<String, Object>>) content.get("items");
+            if (items != null) {
+                for (Map<String, Object> item : items) {
+                    result.add((String) item.get("name"));
+                }
+            }
+        }
+        return result;
+    }
+
+    public List<Map<String, Object>> getExperience(Long cvId) {
+        List<CvSection> sections = repo.findByCvIdAndType(cvId, "EXPERIENCE");
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (CvSection sec : sections) {
+            Map<String, Object> content = sec.getContent();
+            List<Map<String, Object>> items = (List<Map<String, Object>>) content.get("items");
+            if (items != null) result.addAll(items);
+        }
+        return result;
+    }
+
+    public List<Map<String, Object>> getEducation(Long cvId) {
+        List<CvSection> sections = repo.findByCvIdAndType(cvId, "EDUCATION");
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (CvSection sec : sections) {
+            Map<String, Object> content = sec.getContent();
+            List<Map<String, Object>> items = (List<Map<String, Object>>) content.get("items");
+            if (items != null) result.addAll(items);
+        }
+        return result;
     }
 }

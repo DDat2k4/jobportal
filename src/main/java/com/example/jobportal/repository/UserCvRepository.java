@@ -211,4 +211,35 @@ public class UserCvRepository {
 
         return Optional.ofNullable(mapRecordToEntity(record));
     }
+
+    /**
+     * Lấy CV mặc định (is_default = true) của user dưới dạng JSON string.
+     * Nếu không có CV mặc định -> Optional.empty()
+     */
+    public Optional<String> findDefaultCvJsonByUserId(Long userId) {
+        return dsl.select(USER_CVS.DATA)
+                .from(USER_CVS)
+                .where(USER_CVS.USER_ID.eq(userId).and(USER_CVS.IS_DEFAULT.eq(true)))
+                .fetchOptional(r -> {
+                    Object v = r.get(USER_CVS.DATA);
+                    return v == null ? null : v.toString();
+                });
+    }
+
+    public Optional<String> findCvJsonById(Long cvId) {
+        return dsl.select(USER_CVS.DATA)
+                .from(USER_CVS)
+                .where(USER_CVS.ID.eq(cvId))
+                .fetchOptional(r -> {
+                    Object v = r.get(USER_CVS.DATA);
+                    return v == null ? null : v.toString();
+                });
+    }
+
+    /** Lấy tất cả CV mặc định (is_default = true) */
+    public List<UserCv> findAllDefault() {
+        return dsl.selectFrom(USER_CVS)
+                .where(USER_CVS.IS_DEFAULT.isTrue())
+                .fetch(this::mapRecordToEntity);
+    }
 }
