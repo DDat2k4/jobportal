@@ -10,7 +10,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/roadmap-templates")
@@ -27,10 +26,13 @@ public class RoadmapTemplateController {
                 .orElseGet(() -> ApiResponse.error("Template not found"));
     }
 
-    @GetMapping("/by-skill/{skillId}")
+    @GetMapping("/by-skill")
     @PreAuthorize("hasAuthority('ROADMAP_TEMPLATE_READ')")
-    public ApiResponse<List<RoadmapTemplate>> getBySkill(@PathVariable Long skillId) {
-        return ApiResponse.ok("Templates fetched successfully", service.getBySkillId(skillId));
+    public ApiResponse<List<RoadmapTemplate>> getBySkillName(
+            @RequestParam String skillName
+    ) {
+        return ApiResponse.ok("Templates fetched", service.getBySkillName(skillName)
+        );
     }
 
     @GetMapping

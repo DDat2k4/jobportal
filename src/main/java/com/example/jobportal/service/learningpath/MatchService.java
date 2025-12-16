@@ -5,7 +5,6 @@ import com.example.jobportal.data.pojo.learningpath.MatchResult;
 import static com.example.jobportal.util.CommonUtils.normalize;
 import com.example.jobportal.repository.*;
 import com.example.jobportal.service.UserCvService;
-import com.example.jobportal.service.UserService;
 import com.example.jobportal.util.FuzzyMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

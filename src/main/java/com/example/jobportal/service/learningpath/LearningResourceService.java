@@ -36,4 +36,8 @@ public class LearningResourceService {
     public int delete(Long id) {
         return repo.delete(id);
     }
+
+    public boolean existsBySkillAndUrl(Long skillId, String url) {
+        return repo.existsBySkillIdAndUrl(skillId, url);
+    }
 }

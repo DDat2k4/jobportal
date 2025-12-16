@@ -1,5 +1,7 @@
 package com.example.jobportal.service.learningpath;
 
+import com.example.jobportal.data.entity.JobSkill;
+import com.example.jobportal.data.entity.Skill;
 import com.example.jobportal.data.entity.learningpath.LearningResource;
 import com.example.jobportal.data.entity.learningpath.RoadmapTemplate;
 import com.example.jobportal.data.pojo.JobSkillWithName;
@@ -7,6 +9,7 @@ import com.example.jobportal.data.pojo.learningpath.LearningPathStep;
 import com.example.jobportal.data.pojo.learningpath.MatchResult;
 import com.example.jobportal.data.pojo.learningpath.RoadmapResult;
 import com.example.jobportal.repository.JobSkillRepository;
+import com.example.jobportal.repository.SkillRepository;
 import com.example.jobportal.repository.learningpath.LearningResourceRepository;
 import com.example.jobportal.repository.learningpath.RoadmapTemplateRepository;
 import org.springframework.stereotype.Service;
@@ -21,54 +24,51 @@ public class RoadmapService {
     private final JobSkillRepository jobSkillRepository;
     private final LearningResourceRepository learningResourceRepository;
     private final RoadmapTemplateRepository roadmapTemplateRepository;
+    private final SkillRepository skillRepository;
 
     public RoadmapService(MatchService matchService,
                           JobSkillRepository jobSkillRepository,
                           LearningResourceRepository learningResourceRepository,
-                          RoadmapTemplateRepository roadmapTemplateRepository) {
+                          RoadmapTemplateRepository roadmapTemplateRepository,
+                          SkillRepository skillRepository) {
         this.matchService = matchService;
         this.jobSkillRepository = jobSkillRepository;
         this.learningResourceRepository = learningResourceRepository;
         this.roadmapTemplateRepository = roadmapTemplateRepository;
+        this.skillRepository = skillRepository;
     }
 
     public RoadmapResult generateRoadmap(Long userId, Long jobId) {
 
         MatchResult match = matchService.matchUserToJob(userId, jobId).orElse(null);
-
-        if (match == null)
+        if (match == null) {
             return RoadmapResult.empty(userId, jobId);
+        }
 
         List<LearningPathStep> allSteps = new ArrayList<>();
 
-        for (String missingSkillName : match.getMissingSkills()) {
-            JobSkillWithName skillWithName = jobSkillRepository.findByJobIdWithSkillName(jobId).stream()
-                    .filter(js -> js.getSkillName().equalsIgnoreCase(missingSkillName))
-                    .findFirst()
-                    .orElse(null);
+        for (JobSkill js : match.getMissingJobSkills()) {
 
-            if (skillWithName == null) continue;
+            Long skillId = js.getSkillId();
 
-            Long skillId = skillWithName.getSkillId();
+            String skillName = skillRepository.findById(skillId)
+                    .map(Skill::getName)
+                    .orElse("Unknown skill");
 
-            // Lấy template
-            List<RoadmapTemplate> templates = roadmapTemplateRepository.findBySkillIdOrderByStepOrder(skillId);
+            List<RoadmapTemplate> templates =
+                    roadmapTemplateRepository.findBySkillIdOrderByStepOrder(skillId);
 
-            // Lấy resources
-            List<LearningResource> resources = learningResourceRepository.findBySkillId(skillId);
+            List<LearningResource> resources =
+                    learningResourceRepository.findBySkillId(skillId);
 
             for (RoadmapTemplate template : templates) {
-                LearningPathStep step = new LearningPathStep();
-                step.setTitle(template.getTitle());
-                step.setSkill(missingSkillName);
-                step.setDuration(template.getDurationDays() + " days");
-                step.setAction(template.getAction());
 
-                // Gán tất cả resource liên quan skill (có thể lọc theo type nếu muốn)
-                List<String> stepResources = resources.stream()
-                        .map(LearningResource::getTitle)
-                        .toList();
-                step.setResources(stepResources);
+                LearningPathStep step = new LearningPathStep();
+                step.setSkill(skillName);
+                step.setTitle(template.getTitle());
+                step.setAction(template.getAction());
+                step.setDuration(template.getDurationDays() + " days");
+                step.setResources(resources);
 
                 allSteps.add(step);
             }
@@ -109,7 +109,7 @@ public class RoadmapService {
                 step.setSkill(missingSkillName);
                 step.setDuration(template.getDurationDays() + " days");
                 step.setAction(template.getAction());
-                step.setResources(resources.stream().map(LearningResource::getTitle).toList());
+                step.setResources(resources);
                 allSteps.add(step);
             }
         }

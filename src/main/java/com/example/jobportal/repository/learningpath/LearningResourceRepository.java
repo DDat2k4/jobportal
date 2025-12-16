@@ -133,5 +133,14 @@ public class LearningResourceRepository {
                 dsl.selectOne().from(LEARNING_RESOURCE).where(getWhereCondition(filter))
         );
     }
+
+    public boolean existsBySkillIdAndUrl(Long skillId, String url) {
+        return dsl.fetchExists(
+                dsl.selectOne()
+                        .from(LEARNING_RESOURCE)
+                        .where(LEARNING_RESOURCE.SKILL_ID.eq(skillId))
+                        .and(LEARNING_RESOURCE.URL.eq(url))
+        );
+    }
 }
 

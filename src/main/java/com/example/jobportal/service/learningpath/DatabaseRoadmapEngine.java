@@ -2,6 +2,7 @@ package com.example.jobportal.service.learningpath;
 
 import com.example.jobportal.data.entity.JobSkill;
 import com.example.jobportal.data.entity.Skill;
+import com.example.jobportal.data.entity.learningpath.LearningResource;
 import com.example.jobportal.data.pojo.learningpath.LearningPathStep;
 import com.example.jobportal.data.pojo.learningpath.RoadmapEngine;
 import com.example.jobportal.repository.SkillRepository;
@@ -45,9 +46,10 @@ public class DatabaseRoadmapEngine implements RoadmapEngine {
 
         for (var t : templates) {
 
-            List<String> res = resources.stream()
-                    .filter(r -> r.getDifficulty() <= skill.getDifficulty())
-                    .map(r -> r.getTitle() + " (" + r.getProvider() + ")")
+            var filteredResources = resources.stream()
+                    .filter(r -> r.getDifficulty() == null
+                            || skill.getDifficulty() == null
+                            || r.getDifficulty() <= skill.getDifficulty())
                     .toList();
 
             steps.add(LearningPathStep.builder()
@@ -55,7 +57,7 @@ public class DatabaseRoadmapEngine implements RoadmapEngine {
                     .title(t.getTitle())
                     .duration(t.getDurationDays() + " days")
                     .action(t.getAction())
-                    .resources(res)
+                    .resources(filteredResources)
                     .build());
         }
 
@@ -69,8 +71,19 @@ public class DatabaseRoadmapEngine implements RoadmapEngine {
                 .duration("7 days")
                 .action("Take an intro course + build a mini project")
                 .resources(List.of(
-                        "Basic course: " + name,
-                        "Practice project with " + name
+                        LearningResource.builder()
+                                .title("Basic course: " + name)
+                                .type("COURSE")
+                                .provider("Internal")
+                                .url(null)
+                                .build(),
+
+                        LearningResource.builder()
+                                .title("Practice project with " + name)
+                                .type("PROJECT")
+                                .provider("Internal")
+                                .url(null)
+                                .build()
                 ))
                 .build();
     }

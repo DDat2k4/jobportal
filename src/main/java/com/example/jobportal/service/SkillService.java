@@ -45,4 +45,13 @@ public class SkillService {
     public Page<Skill> getAll(Skill filter, Pageable pageable) {
         return repo.findAll(filter, pageable);
     }
+
+    public Optional<Skill> findByNameIgnoreCase(String name) {
+        String normalized = name.toLowerCase().trim();
+        return repo.findByNormalizedName(normalized);
+    }
+
+    public Optional<Skill> findByNormalizedName(String normalizedName) {
+        return repo.findByNormalizedName(normalizedName);
+    }
 }

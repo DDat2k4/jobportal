@@ -139,4 +139,11 @@ public class SkillRepository {
                 .where(SKILLS.NORMALIZED_NAME.eq(normalizedName))
                 .fetchOptionalInto(Skill.class);
     }
+
+    public Optional<Skill> findByNameIgnoreCase(String name) {
+        return dsl.select(getFields())
+                .from(SKILLS)
+                .where(SKILLS.NAME.equalIgnoreCase(name))
+                .fetchOptionalInto(Skill.class);
+    }
 }
