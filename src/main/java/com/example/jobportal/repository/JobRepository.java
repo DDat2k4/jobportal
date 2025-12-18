@@ -110,6 +110,7 @@ public class JobRepository {
                 .set(JOBS.LOCATION, job.getLocation())
                 .set(JOBS.CATEGORY_ID, job.getCategoryId())
                 .set(JOBS.TYPE, job.getType())
+                .set(JOBS.DEADLINE, job.getDeadline())
                 .set(JOBS.STATUS, job.getStatus())
                 .set(JOBS.REQUIRED_EDUCATION, job.getRequiredEducation())
                 .set(JOBS.REQUIRED_EXPERIENCE_YEARS, job.getRequiredExperienceYears())
