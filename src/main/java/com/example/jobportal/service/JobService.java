@@ -87,8 +87,8 @@ public class JobService {
     /**
      * Lấy danh sách Job kèm JobSkill
      */
-    public Page<Job> getAll(Job filter, Pageable pageable) {
-        Page<Job> jobs = repo.findAll(filter, pageable);
+    public Page<Job> getAll(Job filter, String keyword, Pageable pageable) {
+        Page<Job> jobs = repo.findAll(filter, keyword, pageable);
         for (Job job : jobs.getItems()) {
             job.setSkills(jobSkillRepo.findByJobId(job.getId()));
         }

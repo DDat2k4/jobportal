@@ -126,7 +126,20 @@ public class JobRepository {
                 .execute();
     }
 
-    public Page<Job> findAll(Job filter, Pageable pageable) {
+    private Condition getKeywordCondition(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return DSL.noCondition();
+        }
+
+        String kw = "%" + keyword.trim() + "%";
+
+        return JOBS.TITLE.likeIgnoreCase(kw)
+                .or(JOBS.DESCRIPTION.likeIgnoreCase(kw))
+                .or(JOBS.REQUIREMENTS.likeIgnoreCase(kw))
+                .or(JOBS.LOCATION.likeIgnoreCase(kw));
+    }
+
+    public Page<Job> findAll(Job filter, String keyword, Pageable pageable) {
         pageable = pageable != null ? pageable : new Pageable();
         int offset = pageable.getOffset();
         int limit = pageable.getLimit();
@@ -138,12 +151,17 @@ public class JobRepository {
         Field<?> sort = JOBS.field(sortField);
         if (sort == null) sort = JOBS.ID;
 
-        long total = count(filter);
+        Condition condition = getWhereCondition(filter)
+                .and(getKeywordCondition(keyword));
+
+        long total = dsl.fetchCount(
+                dsl.selectOne().from(JOBS).where(condition)
+        );
         pageable.setTotal(total);
 
         List<Job> items = dsl.select(getFields())
                 .from(JOBS)
-                .where(getWhereCondition(filter))
+                .where(condition)
                 .orderBy(isAsc ? sort.asc() : sort.desc())
                 .limit(limit)
                 .offset(offset)

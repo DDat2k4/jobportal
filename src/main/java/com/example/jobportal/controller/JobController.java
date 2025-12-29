@@ -34,6 +34,7 @@ public class JobController {
     @GetMapping
     @PreAuthorize("hasAuthority('JOB_READ')")
     public ApiResponse<Page<Job>> getAll(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) Long companyId,
             @RequestParam(required = false) Long categoryId,
@@ -45,7 +46,9 @@ public class JobController {
     ) {
         Pageable pageable = new Pageable(page, size);
         if (sortBy != null) {
-            pageable.addOrder(sortBy, Boolean.TRUE.equals(asc) ? Order.Direction.ASC : Order.Direction.DESC);
+            pageable.addOrder(sortBy, Boolean.TRUE.equals(asc)
+                    ? Order.Direction.ASC
+                    : Order.Direction.DESC);
         } else {
             pageable.setDefaultSort("id");
         }
@@ -56,14 +59,17 @@ public class JobController {
                 .setCategoryId(categoryId)
                 .setLocation(location);
 
-        return ApiResponse.ok("Jobs fetched successfully", jobService.getAll(filter, pageable));
+        return ApiResponse.ok(
+                "Jobs fetched successfully",
+                jobService.getAll(filter, keyword, pageable)
+        );
     }
 
     // Tạo Job kèm danh sách JobSkill
     @PostMapping
     @PreAuthorize("hasAuthority('JOB_CREATE') and @jobSecurity.canAccessCompany(#job.companyId)")
     public ApiResponse<Job> create(@RequestBody Job job) {
-        List<JobSkill> skills = job.getSkills(); // lấy skills từ request
+        List<JobSkill> skills = job.getSkills();
         Job created = jobService.create(job, skills);
         return ApiResponse.ok("Job created successfully", created);
     }
