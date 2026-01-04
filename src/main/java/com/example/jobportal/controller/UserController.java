@@ -107,7 +107,7 @@ public class UserController {
             @RequestParam String email,
             @RequestParam String passwordHash
     ) {
-        Long userId = userService.createUser(username, email, passwordHash);
+        Long userId = userService.createUser(username, email, null ,passwordHash);
         return ApiResponse.ok("User created successfully", userId);
     }
 

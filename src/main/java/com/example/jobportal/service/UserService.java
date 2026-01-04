@@ -50,8 +50,8 @@ public class UserService {
     /**
      * Tạo user mới
      */
-    public Long createUser(String username, String email, String passwordHash) {
-        return userRepository.create(username, email, passwordHash);
+    public Long createUser(String username, String email, String phone, String passwordHash) {
+        return userRepository.create(username, email, phone, passwordHash);
     }
 
     /**

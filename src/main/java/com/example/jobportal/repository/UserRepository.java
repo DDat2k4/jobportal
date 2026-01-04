@@ -391,11 +391,12 @@ public class UserRepository {
         return new Page<>(pageable, users);
     }
 
-    public Long create(String username, String email, String passwordHash) {
+    public Long create(String username, String email, String phone, String passwordHash) {
         return dsl.insertInto(USERS)
                 .set(USERS.UID, val(UUID.randomUUID()))
                 .set(USERS.USERNAME, val(username))
                 .set(USERS.EMAIL, val(email))
+                .set(USERS.PHONE, val(phone))
                 .set(USERS.PASSWORD_HASH, val(passwordHash))
                 .set(USERS.FAILED_ATTEMPTS, val(0))
                 .set(USERS.ACTIVE, val(UserStatus.ACTIVE))

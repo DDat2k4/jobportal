@@ -32,7 +32,7 @@ public class AuthController {
         }
 
         String passwordHash = passwordEncoder.encode(request.getPassword());
-        Long userId = userRepository.create(request.getUsername(), request.getEmail(), passwordHash);
+        Long userId = userRepository.create(request.getUsername(), request.getEmail(), request.getPhone(), passwordHash);
 
         // Tạo profile mặc định
         userRepository.createProfile(userId, request.getUsername(), null);
